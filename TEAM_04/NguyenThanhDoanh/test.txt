@@ -1,1 +1,2 @@
-Test
+git config --global user.name "LeeJMaiRap"
+git config --global user.email 22t1020071@husc.edu.vn
