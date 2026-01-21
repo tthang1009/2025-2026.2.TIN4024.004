@@ -1,15 +1,5 @@
 DANH SÁCH NHÓM 4
 1. Võ Việt Dũng
-<<<<<<< HEAD
-15. abcd
-2. Châu Kỳ
-3. Võ Hữu Lộc
-=======
-3 vvdung -testing
-4. testing 2
-Danh sách nhóm 5 
-1 Trương Đức Long 
-=======
 2. abcd
 3. Châu Kỳ
 4. Võ Hữu Lộc
@@ -17,6 +7,7 @@ Danh sách nhóm 5
 5 vvdung -testing
 6. Nguyễn Tống Bảo Phúc
 7 tessting 3
+8.Hà Văn Hòa
 Danh sách nhóm 6
 1. Nguyễn Hữu Trình- 22T1020481
 2.
@@ -24,4 +15,3 @@ Danh sách nhóm 6
 4.
 5.
 
->>>>>>> 8a3c18d4eabd005b3919605191c662ae53a5ee7c
