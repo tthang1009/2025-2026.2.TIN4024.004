@@ -6,7 +6,7 @@ DANH SÁCH NHÓM 4
 5. Nguyễn Đình Tuấn
 5 vvdung -testing
 6. Nguyễn Tống Bảo Phúc
-9. Trương Công Bin
+7. Trương Công Bin
 7 tessting 3
 8.Hà Văn Hòa
 9. Lê Nhữ Hoàng
@@ -14,7 +14,6 @@ DANH SÁCH NHÓM 4
 11. Nguyễn Đăng Bảo Toàn
 12. Đào Thị Thùy Dương
 13. Hoàng Anh Quân
-14. Nguyễn Đình Vĩnh Phú
->>>>>>> 417f33678eedd951333d5c1a961dccb992b7ef78
-5.
+14. Nguyễn Thị Huyền Trân
+15. Nguyễn Đình Vĩnh Phú
 
