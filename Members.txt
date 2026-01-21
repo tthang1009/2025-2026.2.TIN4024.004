@@ -13,8 +13,6 @@ DANH SÁCH NHÓM 4
 10. Nguyễn Hữu Trình- 22T1020481
 11. Nguyễn Đăng Bảo Toàn
 12. Đào Thị Thùy Dương
-
-=======
 13. Hoàng Anh Quân
 14. Nguyễn Đình Vĩnh Phú
 >>>>>>> 417f33678eedd951333d5c1a961dccb992b7ef78
