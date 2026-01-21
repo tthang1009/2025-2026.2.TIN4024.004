@@ -1,19 +1,22 @@
 DANH SÁCH NHÓM 4
 1. Võ Việt Dũng
-2. abcd
+2. Trần Hữu Tôn Hoàng Gia
 3. Châu Kỳ
 4. Võ Hữu Lộc
 5. Nguyễn Đình Tuấn
-5 vvdung -testing
 6. Nguyễn Tống Bảo Phúc
-9. Trương Công Bin
-7 tessting 3
-8.Hà Văn Hòa
+7. Trương Công Bin
+8. Hà Văn Hòa
 9. Lê Nhữ Hoàng
 10. Nguyễn Hữu Trình- 22T1020481
 11. Nguyễn Đăng Bảo Toàn
 12. Đào Thị Thùy Dương
-13. Hoàng Anh Quân
+<<<<<<< HEAD
+13.
 4.
+=======
+13. Hoàng Anh Quân
+14. Nguyễn Thị Huyền Trân
+>>>>>>> 3091e4f148441ac8c7458280f77a692c674dee9a
 5.
 
