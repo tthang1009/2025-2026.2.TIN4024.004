@@ -28,7 +28,7 @@ void loop() {
   
   delay(5000); // Solid for 5 seconds
   
-  // Blink for the remaining 2 seconds (4 cycles of 250ms ON/250ms OFF)
+  // Blink for the remaining 2 seconds (4 cycles of 450ms ON/450ms OFF)
   for (int i = 0; i < 4; i++) {
     digitalWrite(GREEN_PIN, LOW);
     delay(450);
@@ -48,10 +48,10 @@ void loop() {
   digitalWrite(GREEN_PIN, LOW);
   digitalWrite(YELLOW_PIN, LOW);
   digitalWrite(RED_PIN, HIGH);
-  delay(RED_TIME);
 
-  delay(6000);
+  delay(6000); // Solid for 6 seconds
 
+  // Blink for the remaining 2 seconds (4 cycles of 450ms ON/450ms OFF)
   for (int i = 0; i < 4; i++) {
     digitalWrite(RED_PIN, LOW);
     delay(450);
