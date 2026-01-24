@@ -29,6 +29,7 @@ void loop() {
   delay(5000); // Solid for 5 seconds
   
   // Blink for the remaining 2 seconds (4 cycles of 450ms ON/450ms OFF)
+  Serial.println("LED [GREEN] is blinking...");
   for (int i = 0; i < 4; i++) {
     digitalWrite(GREEN_PIN, LOW);
     delay(450);
@@ -52,6 +53,7 @@ void loop() {
   delay(6000); // Solid for 6 seconds
 
   // Blink for the remaining 2 seconds (4 cycles of 450ms ON/450ms OFF)
+  Serial.println("LED [RED] is blinking...");
   for (int i = 0; i < 4; i++) {
     digitalWrite(RED_PIN, LOW);
     delay(450);
