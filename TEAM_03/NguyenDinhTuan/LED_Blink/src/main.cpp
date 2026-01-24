@@ -1,58 +1,61 @@
 #include <Arduino.h>
 
+// Pin Definitions
 #define GREEN_PIN  32
 #define YELLOW_PIN 33
 #define RED_PIN    25
 
+// Timing Definitions (in milliseconds)
+#define RED_TIME    8000
+#define YELLOW_TIME 3000
+#define GREEN_TIME  7000 
+
 void setup() {
-  // Initialize the pins as outputs
   pinMode(GREEN_PIN, OUTPUT);
   pinMode(YELLOW_PIN, OUTPUT);
   pinMode(RED_PIN, OUTPUT);
   
+  // Initialize Serial at the standard ESP32 speed
   Serial.begin(115200);
-  Serial.println("Traffic Light Sequence Started");
 }
 
 void loop() {
-  // --- Phase 1: GO (Green) ---
-  Serial.println("Light is GREEN");
+  // --- Phase 1: GREEN (7 Seconds total) ---
+  Serial.println("LED [GREEN] ON => 7 Seconds");
   digitalWrite(GREEN_PIN, HIGH);
   digitalWrite(YELLOW_PIN, LOW);
   digitalWrite(RED_PIN, LOW);
-  delay(5000); 
-
-  // --- Phase 1.5: GO (Green Blinking) ---
-  Serial.println("Light is GREEN (Blinking)");
-  // Blink 3 times
-  for (int i = 0; i < 3; i++) {
-    digitalWrite(GREEN_PIN, LOW);  // Off
-    delay(550);
-    digitalWrite(GREEN_PIN, HIGH); // On
-    delay(550);
+  
+  delay(5000); // Solid for 5 seconds
+  
+  // Blink for the remaining 2 seconds (4 cycles of 250ms ON/250ms OFF)
+  for (int i = 0; i < 4; i++) {
+    digitalWrite(GREEN_PIN, LOW);
+    delay(450);
+    digitalWrite(GREEN_PIN, HIGH);
+    delay(450);
   }
 
-  // --- Phase 2: CAUTION (Yellow) ---
-  Serial.println("Light is YELLOW");
+  // --- Phase 2: YELLOW ---
+  Serial.println("LED [YELLOW] ON => 3 Seconds");
   digitalWrite(GREEN_PIN, LOW);
   digitalWrite(YELLOW_PIN, HIGH);
   digitalWrite(RED_PIN, LOW);
-  delay(2000); 
+  delay(YELLOW_TIME);
 
-  // --- Phase 3: STOP (Red) ---
-  Serial.println("Light is RED");
+  // --- Phase 3: RED ---
+  Serial.println("LED [RED] ON => 8 Seconds");
   digitalWrite(GREEN_PIN, LOW);
   digitalWrite(YELLOW_PIN, LOW);
   digitalWrite(RED_PIN, HIGH);
-  delay(7000); 
+  delay(RED_TIME);
 
-  // --- Phase 3.5: STOP (Red Blinking) ---
-  Serial.println("Light is RED (Blinking)");
-  // Blink 3 times
-  for (int i = 0; i < 3; i++) {
-    digitalWrite(RED_PIN, LOW);  // Off
-    delay(550);
-    digitalWrite(RED_PIN, HIGH); // On
-    delay(550);
+  delay(6000);
+
+  for (int i = 0; i < 4; i++) {
+    digitalWrite(RED_PIN, LOW);
+    delay(450);
+    digitalWrite(RED_PIN, HIGH);
+    delay(450);
   }
 }
