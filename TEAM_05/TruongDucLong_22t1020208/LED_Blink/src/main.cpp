@@ -4,67 +4,83 @@
 #define PIN_LED_YELLOW  32
 #define PIN_LED_GREEN   33
 
-
 #define TIME_RED     10000
 #define TIME_YELLOW  3000
 #define TIME_GREEN   7000
 
+#define BLINK_TIME   500   
+
 enum TrafficState {
   RED,
-  YELLOW,
-  GREEN
+  GREEN,
+  YELLOW
 };
 
 TrafficState currentState = RED;
-unsigned long lastTime = 0;
 
-void setLights(bool red, bool yellow, bool green) {
-  digitalWrite(PIN_LED_RED, red);
-  digitalWrite(PIN_LED_YELLOW, yellow);
-  digitalWrite(PIN_LED_GREEN, green);
+unsigned long stateTimer = 0;
+unsigned long blinkTimer = 0;
+bool ledStatus = false;
+
+void allOff() {
+  digitalWrite(PIN_LED_RED, LOW);
+  digitalWrite(PIN_LED_YELLOW, LOW);
+  digitalWrite(PIN_LED_GREEN, LOW);
 }
 
 void setup() {
   Serial.begin(115200);
-  Serial.println("TRAFFIC LIGHT START");
 
   pinMode(PIN_LED_RED, OUTPUT);
   pinMode(PIN_LED_YELLOW, OUTPUT);
   pinMode(PIN_LED_GREEN, OUTPUT);
 
-  setLights(HIGH, LOW, LOW); 
-  lastTime = millis();
+  stateTimer = millis();
+  blinkTimer = millis();
 }
 
 void loop() {
   unsigned long now = millis();
 
+  
+  if (now - blinkTimer >= BLINK_TIME) {
+    blinkTimer = now;
+    ledStatus = !ledStatus;
+
+    allOff();
+
+    if (currentState == RED)
+      digitalWrite(PIN_LED_RED, ledStatus);
+
+    else if (currentState == GREEN)
+      digitalWrite(PIN_LED_GREEN, ledStatus);
+
+    else if (currentState == YELLOW)
+      digitalWrite(PIN_LED_YELLOW, ledStatus);
+  }
   switch (currentState) {
 
     case RED:
-      if (now - lastTime >= TIME_RED) {
+      if (now - stateTimer >= TIME_RED) {
         currentState = GREEN;
-        lastTime = now;
-        setLights(LOW, LOW, HIGH);
-        Serial.println("GREEN ON");
+        stateTimer = now;
+        Serial.println("CHANGE TO GREEN");
       }
       break;
 
     case GREEN:
-      if (now - lastTime >= TIME_GREEN) {
+      if (now - stateTimer >= TIME_GREEN) {
         currentState = YELLOW;
-        lastTime = now;
-        setLights(LOW, HIGH, LOW);
-        Serial.println("YELLOW ON");
+        stateTimer = now;
+        Serial.println("CHANGE TO YELLOW");
       }
       break;
 
     case YELLOW:
-      if (now - lastTime >= TIME_YELLOW) {
+      if (now - stateTimer >= TIME_YELLOW) {
         currentState = RED;
-        lastTime = now;
-        setLights(HIGH, LOW, LOW);
-        Serial.println("RED ON");
+        stateTimer = now;
+        Serial.println("CHANGE TO RED");
       }
       break;
   }
