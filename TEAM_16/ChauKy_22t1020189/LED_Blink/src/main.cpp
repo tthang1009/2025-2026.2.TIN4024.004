@@ -1,18 +1,58 @@
 #include <Arduino.h>
 
-// put function declarations here:
-int myFunction(int, int);
+#define PIN_LED_RED 23 // Chân nối LED đỏ
+#define PIN_LED_GREEN 22 // Chân nối LED xanh
+#define PIN_LED_YELLOW 21 // Chân nối LED vàng 
+
+// Hàm tạo bộ đếm thời gian (non-blocking)
+bool IsReady(unsigned long &uTimer, uint32_t millisecond){
+  if (millis() - uTimer < millisecond) return false; // Chưa đủ thời gian thì thoát
+  uTimer = millis(); // Cập nhật lại thời gian
+  return true; 
+}
+
+void ALLOFF(){ // Tắt tất cả LED
+  digitalWrite(PIN_LED_RED, LOW);
+  digitalWrite(PIN_LED_GREEN, LOW);
+  digitalWrite(PIN_LED_YELLOW, LOW);
+}
 
 void setup() {
-  // put your setup code here, to run once:
-  int result = myFunction(2, 3);
+  printf("Setup LED Blink\n");
+  pinMode(PIN_LED_RED, OUTPUT); // Cấu hình chân nối LED đỏ là OUTPUT
+  pinMode(PIN_LED_GREEN, OUTPUT); // Cấu hình chân nối LED xanh là OUTPUT
+  pinMode(PIN_LED_YELLOW, OUTPUT); // Cấu hình chân nối LED vàng là OUTPUT
 }
-
+// Hàm vòng lặp chính
 void loop() {
-  // put your main code here, to run repeatedly:
+  //static unsigned long uTimerLED = 0; // Biến lưu thời gian cho LED
+  static unsigned long timerBlink =0; // Thời gian nhấp nháy
+  static unsigned long timerPhase =0; // Thời gian pha
+  static bool lesStatus = false; // Trạng thái hiện tại của LED
+  static int phase =0; // Pha hiện tại
+
+  ALLOFF(); // Tắt tất cả LED trước khi cập nhật trạng thái mới
+
+  if (IsReady(timerBlink, 500)){ // Kiểm tra đã đủ 500ms chưa
+    lesStatus = !lesStatus; // Đảo trạng thái LED
+    printf("LES IS [%s]\n", lesStatus ? "ON" : "OFF"); // In trạng thái LED ra console
+    //digitalWrite(PIN_LED_RED, lesStatus); // Cập nhật trạng thái LED
+  }
+  
+  if (phase == 0){ // Pha 0: LED đỏ
+    digitalWrite(PIN_LED_RED, lesStatus); // Cập nhật trạng thái LED đỏ
+    if (IsReady(timerPhase, 7000)) phase = 1; // Chuyển pha sau 7 giây
+  }
+  
+  if (phase == 1){ // Pha 1: LED xanh
+    digitalWrite(PIN_LED_GREEN, lesStatus); // Cập nhật trạng thái LED xanh
+    if (IsReady(timerPhase, 5000)) phase = 2; // Chuyển pha sau 5 giây
+  }
+
+  if (phase == 2){ // Pha 2: LED vàng
+    digitalWrite(PIN_LED_YELLOW, lesStatus); // Cập nhật trạng thái LED vàng
+    if (IsReady(timerPhase, 2000)) phase = 0; // Chuyển pha sau 2 giây
+  }
 }
 
-// put function definitions here:
-int myFunction(int x, int y) {
-  return x + y;
-}
+
