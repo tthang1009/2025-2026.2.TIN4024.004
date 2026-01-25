@@ -33,25 +33,34 @@ void loop() {
 
   ALLOFF(); // Tắt tất cả LED trước khi cập nhật trạng thái mới
 
-  if (IsReady(timerBlink, 500)){ // Kiểm tra đã đủ 500ms chưa
+   if (IsReady(timerBlink, 500)){ // Kiểm tra đã đủ 500ms chưa
     lesStatus = !lesStatus; // Đảo trạng thái LED
-    printf("LES IS [%s]\n", lesStatus ? "ON" : "OFF"); // In trạng thái LED ra console
+    
+    //printf("LES IS [%s]\n", lesStatus ? "ON" : "OFF"); // In trạng thái LED ra console
     //digitalWrite(PIN_LED_RED, lesStatus); // Cập nhật trạng thái LED
   }
   
+
   if (phase == 0){ // Pha 0: LED đỏ
     digitalWrite(PIN_LED_RED, lesStatus); // Cập nhật trạng thái LED đỏ
-    if (IsReady(timerPhase, 7000)) phase = 1; // Chuyển pha sau 7 giây
+    if (IsReady(timerPhase, 5000)) { // Sau 5 giây chuyển pha
+      printf ("LED [RED] ON => 5 seconds\n");
+      phase = 1; 
+    }
   }
-  
-  if (phase == 1){ // Pha 1: LED xanh
+  else if (phase == 1){ // Pha 1: LED xanh
     digitalWrite(PIN_LED_GREEN, lesStatus); // Cập nhật trạng thái LED xanh
-    if (IsReady(timerPhase, 5000)) phase = 2; // Chuyển pha sau 5 giây
+    if (IsReady(timerPhase, 7000)) { // Sau 7 giây chuyển pha
+      printf ("LED [GREEN] ON => 7 seconds\n");
+      phase = 2; 
+     } 
   }
-
-  if (phase == 2){ // Pha 2: LED vàng
+  else if (phase == 2){ // Pha 2: LED vàng
     digitalWrite(PIN_LED_YELLOW, lesStatus); // Cập nhật trạng thái LED vàng
-    if (IsReady(timerPhase, 2000)) phase = 0; // Chuyển pha sau 2 giây
+    if (IsReady(timerPhase, 3000)) { // Sau 3 giây chuyển pha
+      printf ("LED [YELLOW] ON => 3 seconds\n"); 
+      phase = 0; 
+     } 
   }
 }
 
