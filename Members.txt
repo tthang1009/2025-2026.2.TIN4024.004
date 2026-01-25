@@ -8,21 +8,21 @@ DANH SÁCH NHÓM 4
 7. Trương Công Bin
 8. Hà Văn Hòa
 9. Lê Nhữ Hoàng
-10. Nguyễn Hữu Trình- 22T1020481
+10. Nguyễn Hữu Trình - 22T1020481
 11. Nguyễn Đăng Bảo Toàn
 12. Đào Thị Thùy Dương
 13. Hoàng Anh Quân
 14. Nguyễn Thị Huyền Trân
 15. Nguyễn Thành Doanh
 16. Nguyễn Đình Vĩnh Phú
-17.Lê Thành Huy
+17. Lê Thành Huy
 18. Hồ Ngọc Phúc Thăng
 17. Lê Thành Huy
 18. Trương Đức Long
 19. Võ Hoàng Minh Phước 
 20. Nguyễn Đại Quý
-21.Trần Xuân Tấn Vinh
-22.Cao Huy Minh Quân
+21. Trần Xuân Tấn Vinh
+22. Cao Huy Minh Quân
 23. Quách Đạo Mạnh
 24. Lê Văn Đình Dương
 25. Trần Tuấn Long
@@ -39,5 +39,6 @@ DANH SÁCH NHÓM 4
 36. Nguyễn Văn Quốc
 37. Lê Ngọc Minh
 38. Zơrâm Nhỏ
-39.Đặng Khánh Linh
-40.Châu Văn Trường Huy
+39. Đặng Khánh Linh
+40. Châu Văn Trường Huy
+41. Phan Anh Tài
