@@ -1,58 +1,27 @@
-{
-  "version": 1,
-  "author": "Hữu Trình Nguyễn",
-  "editor": "wokwi",
-  "parts": [
-    { "type": "board-esp32-devkit-c-v4", "id": "esp", "top": 67.2, "left": 72.04, "attrs": {} },
-    { "type": "wokwi-led", "id": "led1", "top": -42, "left": 215, "attrs": { "color": "red" } },
-    {
-      "type": "wokwi-led",
-      "id": "led2",
-      "top": -61.2,
-      "left": 80.6,
-      "attrs": { "color": "yellow" }
-    },
-    {
-      "type": "wokwi-led",
-      "id": "led3",
-      "top": -51.6,
-      "left": -25,
-      "attrs": { "color": "limegreen" }
-    },
-    {
-      "type": "wokwi-resistor",
-      "id": "r1",
-      "top": 23.15,
-      "left": 0,
-      "attrs": { "value": "1000" }
-    },
-    {
-      "type": "wokwi-resistor",
-      "id": "r2",
-      "top": 23.15,
-      "left": 201.6,
-      "attrs": { "value": "1000" }
-    },
-    {
-      "type": "wokwi-resistor",
-      "id": "r3",
-      "top": 23.15,
-      "left": 86.4,
-      "attrs": { "value": "1000" }
-    }
-  ],
-  "connections": [
-    [ "esp:TX", "$serialMonitor:RX", "", [] ],
-    [ "esp:RX", "$serialMonitor:TX", "", [] ],
-    [ "led3:A", "r1:1", "green", [ "v0" ] ],
-    [ "led2:A", "r3:1", "green", [ "v0" ] ],
-    [ "led1:A", "r2:1", "green", [ "v0" ] ],
-    [ "r2:2", "esp:32", "green", [ "v0" ] ],
-    [ "r3:2", "esp:33", "green", [ "v0" ] ],
-    [ "r1:2", "esp:34", "green", [ "v0" ] ],
-    [ "led3:C", "esp:GND.1", "green", [ "v0" ] ],
-    [ "led2:C", "esp:GND.1", "green", [ "v0" ] ],
-    [ "led1:C", "esp:GND.1", "green", [ "v220.8", "h-153.2" ] ]
-  ],
-  "dependencies": {}
+#include <Arduino.h>
+
+#define PIN_LED_RED 23
+
+//Non-blocking
+bool IsReady(unsigned long &ulTimer, uint32_t millisecond) {
+  if (millis() - ulTimer < millisecond) return false;
+  ulTimer = millis();
+  return true;
+}
+
+void setup() {
+  // put your setup code here, to run once:
+  printf("WELCOME IOT\n");
+  pinMode(PIN_LED_RED, OUTPUT);
+}
+
+//Non-Blocking
+void loop() {
+  static unsigned long ulTimer = 0;
+  static bool lesStatus = false;
+  if (IsReady(ulTimer, 500)){
+    lesStatus = !lesStatus;
+    printf("LES IS [%s]\n",lesStatus ? "ON" : "OFF");
+    digitalWrite(PIN_LED_RED, lesStatus ? HIGH : LOW);
+  }
 }
