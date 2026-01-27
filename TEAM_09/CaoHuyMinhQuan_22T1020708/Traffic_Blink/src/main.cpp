@@ -1,67 +1,36 @@
 #include <Arduino.h>
 
-#define PIN_LED_RED     23
-#define PIN_LED_YELLOW  22
-#define PIN_LED_GREEN   21
+#define RED_LED 25
+#define YELLOW_LED 33
+#define GREEN_LED 32
 
-enum TrafficState {
-  STATE_GREEN,
-  STATE_YELLOW,
-  STATE_RED
-};
-
-unsigned long stateTimer = 0;
-TrafficState currentState = STATE_GREEN;
-
-void setLights(bool red, bool yellow, bool green) {
-  digitalWrite(PIN_LED_RED, red);
-  digitalWrite(PIN_LED_YELLOW, yellow);
-  digitalWrite(PIN_LED_GREEN, green);
-}
-
-void setup() {
+void setup()
+{
   Serial.begin(115200);
-  printf("WELCOME IOT\n");
+  delay(500);
 
-  pinMode(PIN_LED_RED, OUTPUT);
-  pinMode(PIN_LED_YELLOW, OUTPUT);
-  pinMode(PIN_LED_GREEN, OUTPUT);
-
-  // Bắt đầu với đèn xanh
-  setLights(LOW, LOW, HIGH);
-  stateTimer = millis();
+  pinMode(RED_LED, OUTPUT);
+  pinMode(YELLOW_LED, OUTPUT);
+  pinMode(GREEN_LED, OUTPUT);
 }
 
-void loop() {
-  unsigned long now = millis();
+void loop()
+{
+  // RED
+  Serial.println("LED [RED  ] ON => 5 Seconds");
+  digitalWrite(RED_LED, HIGH);
+  delay(5000);
+  digitalWrite(RED_LED, LOW);
 
-  switch (currentState) {
+  // YELLOW
+  Serial.println("LED [YELLOW] ON => 3 Seconds");
+  digitalWrite(YELLOW_LED, HIGH);
+  delay(3000);
+  digitalWrite(YELLOW_LED, LOW);
 
-    case STATE_GREEN:
-      if (now - stateTimer >= 7000) {
-        printf("LED [GREEN ] ON => 7 Seconds\n");
-        setLights(LOW, HIGH, LOW);
-        currentState = STATE_YELLOW;
-        stateTimer = now;
-      }
-      break;
-
-    case STATE_YELLOW:
-      if (now - stateTimer >= 3000) {
-        printf("LED [YELLOW] ON => 3 Seconds\n");
-        setLights(HIGH, LOW, LOW);
-        currentState = STATE_RED;
-        stateTimer = now;
-      }
-      break;
-
-    case STATE_RED:
-      if (now - stateTimer >= 5000) {
-        printf("LED [RED   ] ON => 5 Seconds\n");
-        setLights(LOW, LOW, HIGH);
-        currentState = STATE_GREEN;
-        stateTimer = now;
-      }
-      break;
-  }
+  // GREEN
+  Serial.println("LED [GREEN ] ON => 7 Seconds");
+  digitalWrite(GREEN_LED, HIGH);
+  delay(7000);
+  digitalWrite(GREEN_LED, LOW);
 }
