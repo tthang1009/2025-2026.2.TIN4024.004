@@ -1,8 +1,11 @@
 #include <Arduino.h>
 
-#define PIN_LED_RED 23
+// GPIO pins (match your diagram)
+#define PIN_LED_RED     25
+#define PIN_LED_YELLOW  33
+#define PIN_LED_GREEN   32
 
-//Non-blocking
+// Non-blocking timer function
 bool IsReady(unsigned long &ulTimer, uint32_t millisecond) {
   if (millis() - ulTimer < millisecond) return false;
   ulTimer = millis();
@@ -10,31 +13,47 @@ bool IsReady(unsigned long &ulTimer, uint32_t millisecond) {
 }
 
 void setup() {
-  // put your setup code here, to run once:
-  printf("WELCOME IOT\n");
+  Serial.begin(115200);
+  Serial.println("WELCOME IOT - 3 LED NON BLOCKING");
+
   pinMode(PIN_LED_RED, OUTPUT);
+  pinMode(PIN_LED_YELLOW, OUTPUT);
+  pinMode(PIN_LED_GREEN, OUTPUT);
+
+  // Make sure all LEDs are OFF at start
+  digitalWrite(PIN_LED_RED, LOW);
+  digitalWrite(PIN_LED_YELLOW, LOW);
+  digitalWrite(PIN_LED_GREEN, LOW);
 }
 
-//Non-Blocking
 void loop() {
   static unsigned long ulTimer = 0;
-  static bool lesStatus = false;
-  if (IsReady(ulTimer, 500)){
-    lesStatus = !lesStatus;
-    printf("LES IS [%s]\n",lesStatus ? "ON" : "OFF");
-    digitalWrite(PIN_LED_RED, lesStatus ? HIGH : LOW);
+  static uint8_t state = 0;  // 0=RED, 1=YELLOW, 2=GREEN
+
+  if (IsReady(ulTimer, 1000)) {
+    // Turn all LEDs OFF first
+    digitalWrite(PIN_LED_RED, LOW);
+    digitalWrite(PIN_LED_YELLOW, LOW);
+    digitalWrite(PIN_LED_GREEN, LOW);
+
+    switch (state) {
+      case 0:
+        digitalWrite(PIN_LED_RED, HIGH);
+        Serial.println("RED ON");
+        break;
+
+      case 1:
+        digitalWrite(PIN_LED_YELLOW, HIGH);
+        Serial.println("YELLOW ON");
+        break;
+
+      case 2:
+        digitalWrite(PIN_LED_GREEN, HIGH);
+        Serial.println("GREEN ON");
+        break;
+    }
+
+    state++;
+    if (state > 2) state = 0; // loop back
   }
 }
-
-//BLOCKING
-// void loop() {
-//   // put your main code here, to run repeatedly:
-//   // static int i = 0;
-//   // printf("Loop running ...%d\n",++i);
-//   // delay(1000);
-
-//   digitalWrite(PIN_LED_RED, HIGH); // Turn LED ON
-//   delay(500); // Wait for 500ms
-//   digitalWrite(PIN_LED_RED, LOW); // Turn LED OFF
-//   delay(500); // Wait for 500ms  
-// }
