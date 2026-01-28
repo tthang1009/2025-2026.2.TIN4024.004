@@ -22,6 +22,7 @@ const unsigned long BLINK_INTERVAL = 500;
 bool blinkState = false;
 
 void setup() {
+  
   Serial.begin(115200);
 
   pinMode(RED_LED, OUTPUT);
@@ -39,6 +40,7 @@ void setup() {
 void loop() {
   unsigned long now = millis();
 
+  //Xử lý blink
   if (now - blinkTimer >= BLINK_INTERVAL) {
     blinkTimer = now;
     blinkState = !blinkState;
