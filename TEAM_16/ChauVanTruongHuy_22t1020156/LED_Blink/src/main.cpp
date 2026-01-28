@@ -1,31 +1,40 @@
 #include <Arduino.h>
 
-#define PIN_LED_RED 23
-
-//Non-blocking
-bool IsReady(unsigned long &ulTimer, uint32_t millisecond) {
-  if (millis() - ulTimer < millisecond) return false;
-  ulTimer = millis();
-  return true;
-}
+const int ledXanh = 25;
+const int ledVang = 27;
+const int ledDo = 26;
 
 void setup() {
-  // put your setup code here, to run once:
-  printf("WELCOME IOT\n");
-  pinMode(PIN_LED_RED, OUTPUT);
+  pinMode(ledXanh, OUTPUT);
+  pinMode(ledVang, OUTPUT);
+  pinMode(ledDo, OUTPUT);
+
+  Serial.begin(115200);
+  Serial.println("--- HE THONG DEN GIAO THONG ---");
 }
 
-//Non-Blocking
 void loop() {
-  static unsigned long ulTimer = 0;
-  static bool lesStatus = false;
-  if (IsReady(ulTimer, 500)){
-    lesStatus = !lesStatus;
-    printf("LES IS [%s]\n",lesStatus ? "ON" : "OFF");
-    digitalWrite(PIN_LED_RED, lesStatus ? HIGH : LOW);
-  }
-}
+  // --- PHA 1: ĐÈN XANH (7 giây) ---
+  Serial.println("XANH: Di chuyen (7s)");
+  digitalWrite(ledXanh, HIGH);
+  digitalWrite(ledVang, LOW);
+  digitalWrite(ledDo, LOW);
+  delay(7000); 
 
+  // --- PHA 2: ĐÈN VÀNG (3 giây) ---
+  Serial.println("VANG: Cham lai (3s)");
+  digitalWrite(ledXanh, LOW);
+  digitalWrite(ledVang, HIGH);
+  digitalWrite(ledDo, LOW);
+  delay(3000);
+
+  // --- PHA 3: ĐÈN ĐỎ (10 giây) ---
+  Serial.println("DO: Dung lai (10s)");
+  digitalWrite(ledXanh, LOW);
+  digitalWrite(ledVang, LOW);
+  digitalWrite(ledDo, HIGH);
+  delay(10000);
+}
 //BLOCKING
 // void loop() {
 //   // put your main code here, to run repeatedly:

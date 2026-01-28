@@ -7,7 +7,7 @@
     {
       "type": "wokwi-led",
       "id": "led1",
-      "top": -13.2,
+      "top": -51.6,
       "left": -207.4,
       "attrs": { "color": "red" }
     },
