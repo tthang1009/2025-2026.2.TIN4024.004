@@ -1,43 +1,54 @@
 #include <Arduino.h>
 
-// 1. Định nghĩa các chân cắm (GPIO) dựa trên diagram.json của bạn
-const int RED_LED = 23;    // Đèn Đỏ nối chân 23
-const int YELLOW_LED = 22; // Đèn Vàng nối chân 22
-const int GREEN_LED = 21;  // Đèn Xanh nối chân 21
+// Định nghĩa các chân cắm
+#define PIN_LED_RED 23
+#define PIN_LED_YELLOW 22
+#define PIN_LED_GREEN 21
+
+// Hàm kiểm tra thời gian Non-blocking
+bool IsReady(unsigned long &ulTimer, uint32_t millisecond) {
+  if (millis() - ulTimer < millisecond) return false;
+  ulTimer = millis();
+  return true;
+}
 
 void setup() {
-  // Khởi tạo Serial để theo dõi trên màn hình máy tính
-  Serial.begin(115200);
-
-  // Cấu hình các chân LED là đầu ra (OUTPUT)
-  pinMode(RED_LED, OUTPUT);
-  pinMode(YELLOW_LED, OUTPUT);
-  pinMode(GREEN_LED, OUTPUT);
-
-  Serial.println("He thong den giao thong dang khoi dong...");
+  Serial.begin(115200); // Khởi tạo Serial để printf hoạt động
+  printf("TRAFFIC LIGHT NON-BLOCKING READY\n");
+  
+  pinMode(PIN_LED_RED, OUTPUT);
+  pinMode(PIN_LED_YELLOW, OUTPUT);
+  pinMode(PIN_LED_GREEN, OUTPUT);
 }
 
 void loop() {
-  // --- CHU KỲ ĐÈN GIAO THÔNG ---
+  // Biến lưu thời gian và trạng thái cho từng đèn
+  static unsigned long timerRed = 0;
+  static unsigned long timerYellow = 0;
+  static unsigned long timerGreen = 0;
 
-  // 1. ĐÈN ĐỎ SÁNG (Dừng lại)
-  Serial.println("Trang thai: DEN DO - Dung lai (3s)");
-  digitalWrite(RED_LED, HIGH);
-  digitalWrite(YELLOW_LED, LOW);
-  digitalWrite(GREEN_LED, LOW);
-  delay(3000); // Chờ 3 giây
+  static bool statusRed = false;
+  static bool statusYellow = false;
+  static bool statusGreen = false;
 
-  // 2. ĐÈN XANH SÁNG (Được đi)
-  Serial.println("Trang thai: DEN XANH - Duoc di (5s)");
-  digitalWrite(RED_LED, LOW);
-  digitalWrite(YELLOW_LED, LOW);
-  digitalWrite(GREEN_LED, HIGH);
-  delay(5000); // Chờ 5 giây
+  // Điều khiển Đèn Đỏ (Chớp tắt mỗi 500ms)
+  if (IsReady(timerRed, 500)) {
+    statusRed = !statusRed;
+    digitalWrite(PIN_LED_RED, statusRed);
+    printf("RED LED: %s\n", statusRed ? "ON" : "OFF");
+  }
 
-  // 3. ĐÈN VÀNG SÁNG (Chậm lại/Chuẩn bị dừng)
-  Serial.println("Trang thai: DEN VANG - Cham lai (2s)");
-  digitalWrite(RED_LED, LOW);
-  digitalWrite(YELLOW_LED, HIGH);
-  digitalWrite(GREEN_LED, LOW);
-  delay(2000); // Chờ 2 giây (Thực tế đèn vàng thường ngắn hơn)
+  // Điều khiển Đèn Vàng (Chớp tắt mỗi 1000ms - chậm hơn)
+  if (IsReady(timerYellow, 1000)) {
+    statusYellow = !statusYellow;
+    digitalWrite(PIN_LED_YELLOW, statusYellow);
+    printf("YELLOW LED: %s\n", statusYellow ? "ON" : "OFF");
+  }
+
+  // Điều khiển Đèn Xanh (Chớp tắt mỗi 1500ms - chậm nhất)
+  if (IsReady(timerGreen, 1500)) {
+    statusGreen = !statusGreen;
+    digitalWrite(PIN_LED_GREEN, statusGreen);
+    printf("GREEN LED: %s\n", statusGreen ? "ON" : "OFF");
+  }
 }
