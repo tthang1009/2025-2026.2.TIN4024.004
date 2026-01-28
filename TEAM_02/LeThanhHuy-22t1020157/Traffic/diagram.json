@@ -1,0 +1,28 @@
+{
+  "version": 1,
+  "editor": "wokwi",
+  "parts": [
+    { "id": "esp", "type": "board-esp32-devkit-c-v4" },
+
+    { "id": "led_r", "type": "led", "attrs": { "color": "red" } },
+    { "id": "led_y", "type": "led", "attrs": { "color": "yellow" } },
+    { "id": "led_g", "type": "led", "attrs": { "color": "green" } },
+
+    { "id": "r1", "type": "resistor", "attrs": { "value": "220" } },
+    { "id": "r2", "type": "resistor", "attrs": { "value": "220" } },
+    { "id": "r3", "type": "resistor", "attrs": { "value": "220" } }
+  ],
+  "connections": [
+    ["esp:25", "r1:1", "red"],
+    ["r1:2", "led_r:A", "red"],
+    ["led_r:C", "esp:GND", "black"],
+
+    ["esp:26", "r2:1", "yellow"],
+    ["r2:2", "led_y:A", "yellow"],
+    ["led_y:C", "esp:GND", "black"],
+
+    ["esp:27", "r3:1", "green"],
+    ["r3:2", "led_g:A", "green"],
+    ["led_g:C", "esp:GND", "black"]
+  ]
+}
