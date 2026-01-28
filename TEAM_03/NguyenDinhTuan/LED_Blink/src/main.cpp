@@ -6,58 +6,54 @@
 #define RED_PIN    25
 
 // Timing Definitions (in milliseconds)
-#define RED_TIME    8000
-#define YELLOW_TIME 3000
+// Updated Red to 6000ms as requested
 #define GREEN_TIME  7000 
+#define YELLOW_TIME 3000
+#define RED_TIME    6000 
+
+// Blink speed settings (250ms ON + 250ms OFF = 2 blinks per second)
+#define BLINK_DELAY 250 
 
 void setup() {
   pinMode(GREEN_PIN, OUTPUT);
   pinMode(YELLOW_PIN, OUTPUT);
   pinMode(RED_PIN, OUTPUT);
   
-  // Initialize Serial at the standard ESP32 speed
+  // Initialize Serial
   Serial.begin(115200);
 }
 
+// Helper function to handle the blinking loop for a specific pin and duration
+void blinkLight(int pin, int durationMs, String colorName) {
+  Serial.print("Blinking [");
+  Serial.print(colorName);
+  Serial.print("] for ");
+  Serial.print(durationMs / 1000);
+  Serial.println(" seconds.");
+
+  unsigned long startTime = millis();
+
+  // Keep blinking until the duration has passed
+  while (millis() - startTime < durationMs) {
+    digitalWrite(pin, HIGH);
+    delay(BLINK_DELAY);
+    digitalWrite(pin, LOW);
+    delay(BLINK_DELAY);
+  }
+}
+
 void loop() {
-  // --- Phase 1: GREEN (7 Seconds total) ---
-  Serial.println("LED [GREEN] ON => 7 Seconds");
-  digitalWrite(GREEN_PIN, HIGH);
-  digitalWrite(YELLOW_PIN, LOW);
-  digitalWrite(RED_PIN, LOW);
-  
-  delay(5000); // Solid for 5 seconds
-  
-  // Blink for the remaining 2 seconds (4 cycles of 450ms ON/450ms OFF)
-  Serial.println("LED [GREEN] is blinking...");
-  for (int i = 0; i < 4; i++) {
-    digitalWrite(GREEN_PIN, LOW);
-    delay(450);
-    digitalWrite(GREEN_PIN, HIGH);
-    delay(450);
-  }
-
-  // --- Phase 2: YELLOW ---
-  Serial.println("LED [YELLOW] ON => 3 Seconds");
-  digitalWrite(GREEN_PIN, LOW);
-  digitalWrite(YELLOW_PIN, HIGH);
-  digitalWrite(RED_PIN, LOW);
-  delay(YELLOW_TIME);
-
-  // --- Phase 3: RED ---
-  Serial.println("LED [RED] ON => 8 Seconds");
+  // Ensure all are off before starting a phase
   digitalWrite(GREEN_PIN, LOW);
   digitalWrite(YELLOW_PIN, LOW);
-  digitalWrite(RED_PIN, HIGH);
+  digitalWrite(RED_PIN, LOW);
 
-  delay(6000); // Solid for 6 seconds
+  // --- Phase 1: GREEN (7 Seconds Blinking) ---
+  blinkLight(GREEN_PIN, GREEN_TIME, "GREEN");
 
-  // Blink for the remaining 2 seconds (4 cycles of 450ms ON/450ms OFF)
-  Serial.println("LED [RED] is blinking...");
-  for (int i = 0; i < 4; i++) {
-    digitalWrite(RED_PIN, LOW);
-    delay(450);
-    digitalWrite(RED_PIN, HIGH);
-    delay(450);
-  }
+  // --- Phase 2: YELLOW (3 Seconds Blinking) ---
+  blinkLight(YELLOW_PIN, YELLOW_TIME, "YELLOW");
+
+  // --- Phase 3: RED (6 Seconds Blinking) ---
+  blinkLight(RED_PIN, RED_TIME, "RED");
 }
