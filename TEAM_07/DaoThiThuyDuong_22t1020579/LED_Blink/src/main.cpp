@@ -1,41 +1,33 @@
 #include <Arduino.h>
 
-#define PIN_LED_RED 23
-
-//Non-blocking
-bool IsReady(unsigned long &ulTimer, uint32_t millisecond) {
-  if (millis() - ulTimer < millisecond) return false;
-  ulTimer = millis();
-  return true;
-}
+// ĐÚNG CHÂN THEO MẠCH WOKWI
+#define LED_RED    25
+#define LED_YELLOW 33
+#define LED_GREEN  32
 
 void setup() {
-  // put your setup code here, to run once:
-  printf("WELCOME IOT\n");
-  pinMode(PIN_LED_RED, OUTPUT);
+  pinMode(LED_RED, OUTPUT);
+  pinMode(LED_YELLOW, OUTPUT);
+  pinMode(LED_GREEN, OUTPUT);
+
+  digitalWrite(LED_RED, LOW);
+  digitalWrite(LED_YELLOW, LOW);
+  digitalWrite(LED_GREEN, LOW);
 }
 
-//Non-Blocking
 void loop() {
-  static unsigned long ulTimer = 0;
-  static bool lesStatus = false;
-  if (IsReady(ulTimer, 500)){
-    lesStatus = !lesStatus;
-    printf("LES IS [%s]\n",lesStatus ? "ON" : "OFF");
-    digitalWrite(PIN_LED_RED, lesStatus ? HIGH : LOW);
-  }
+  // Đỏ
+  digitalWrite(LED_RED, HIGH);
+  delay(500);
+  digitalWrite(LED_RED, LOW);
+
+  // Vàng
+  digitalWrite(LED_YELLOW, HIGH);
+  delay(500);
+  digitalWrite(LED_YELLOW, LOW);
+
+  // Xanh
+  digitalWrite(LED_GREEN, HIGH);
+  delay(500);
+  digitalWrite(LED_GREEN, LOW);
 }
-
-//BLOCKING
-// void loop() {
-//   // put your main code here, to run repeatedly:
-//   // static int i = 0;
-//   // printf("Loop running ...%d\n",++i);
-//   // delay(1000);
-
-//   digitalWrite(PIN_LED_RED, HIGH); // Turn LED ON
-//   delay(500); // Wait for 500ms
-//   digitalWrite(PIN_LED_RED, LOW); // Turn LED OFF
-//   delay(500); // Wait for 500ms  
-// }
-

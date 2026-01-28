@@ -1,27 +1,36 @@
-#include <Arduino.h>
+#include <Arduino.h> // <--- QUAN TRỌNG: Phải có dòng này trong file .cpp
 
-#define PIN_LED_RED 123
-
-//Non-blocking
-bool IsReady(unsigned long &ulTimer, uint32_t millisecond) {
-  if (millis() - ulTimer < millisecond) return false;
-  ulTimer = millis();
-  return true;
-}
+// Định nghĩa chân kết nối
+const int PIN_RED = 25;
+const int PIN_YELLOW = 33;
+const int PIN_GREEN = 32;
 
 void setup() {
-  // put your setup code here, to run once:
-  printf("WELCOME IOT\n");
-  pinMode(PIN_LED_RED, OUTPUT);
+  // Khởi động Serial Monitor
+  Serial.begin(115200);
+
+  // Cấu hình các chân là OUTPUT
+  pinMode(PIN_RED, OUTPUT);
+  pinMode(PIN_YELLOW, OUTPUT);
+  pinMode(PIN_GREEN, OUTPUT);
 }
 
-//Non-Blocking
 void loop() {
-  static unsigned long ulTimer = 0;
-  static bool lesStatus = false;
-  if (IsReady(ulTimer, 500)){
-    lesStatus = !lesStatus;
-    printf("LES IS [%s]\n",lesStatus ? "ON" : "OFF");
-    digitalWrite(PIN_LED_RED, lesStatus ? HIGH : LOW);
-  }
+  // --- GIAI ĐOẠN ĐÈN ĐỎ ---
+  digitalWrite(PIN_RED, HIGH);   
+  Serial.println("LED [RED   ] ON => 5 Seconds");
+  delay(5000);                   
+  digitalWrite(PIN_RED, LOW);    
+
+  // --- GIAI ĐOẠN ĐÈN VÀNG ---
+  digitalWrite(PIN_YELLOW, HIGH); 
+  Serial.println("LED [YELLOW] ON => 3 Seconds");
+  delay(3000);                    
+  digitalWrite(PIN_YELLOW, LOW);  
+
+  // --- GIAI ĐOẠN ĐÈN XANH ---
+  digitalWrite(PIN_GREEN, HIGH);  
+  Serial.println("LED [GREEN ] ON => 7 Seconds");
+  delay(7000);                    
+  digitalWrite(PIN_GREEN, LOW);   
 }
