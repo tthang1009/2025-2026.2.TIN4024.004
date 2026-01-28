@@ -20,9 +20,9 @@ void blinkLed(int pin, int seconds) {
 }
 
 void loop() {
-  blinkLed(ledXanh, 7);
+  blinkLed(ledDo, 5);
 
   blinkLed(ledVang, 3);
 
-  blinkLed(ledDo, 10);
+  blinkLed(ledXanh, 7);
 }
