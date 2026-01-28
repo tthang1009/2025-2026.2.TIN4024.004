@@ -1,0 +1,25 @@
+{
+  "version": 1,
+  "author": "User",
+  "editor": "wokwi",
+  "parts": [
+    { "type": "board-esp32-devkit-c-v4", "id": "esp", "top": 0, "left": 0, "attrs": {} },
+    { "type": "wokwi-led", "id": "led-red", "top": -100, "left": -50, "attrs": { "color": "red" } },
+    { "type": "wokwi-led", "id": "led-yellow", "top": -60, "left": -50, "attrs": { "color": "yellow" } },
+    { "type": "wokwi-led", "id": "led-green", "top": -20, "left": -50, "attrs": { "color": "green" } },
+    { "type": "wokwi-resistor", "id": "r1", "top": -100, "left": -100, "attrs": { "value": "220" } },
+    { "type": "wokwi-resistor", "id": "r2", "top": -60, "left": -100, "attrs": { "value": "220" } },
+    { "type": "wokwi-resistor", "id": "r3", "top": -20, "left": -100, "attrs": { "value": "220" } }
+  ],
+  "connections": [
+    [ "esp:GND.2", "led-red:C", "black", [ "h-20", "v-20" ] ],
+    [ "esp:GND.2", "led-yellow:C", "black", [ "h-20", "v-20" ] ],
+    [ "esp:GND.2", "led-green:C", "black", [ "h-20", "v-20" ] ],
+    [ "esp:25", "r1:2", "red", [ "h0" ] ],
+    [ "r1:1", "led-red:A", "red", [ "h0" ] ],
+    [ "esp:33", "r2:2", "yellow", [ "h0" ] ],
+    [ "r2:1", "led-yellow:A", "yellow", [ "h0" ] ],
+    [ "esp:32", "r3:2", "green", [ "h0" ] ],
+    [ "r3:1", "led-green:A", "green", [ "h0" ] ]
+  ]
+}

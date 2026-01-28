@@ -3,12 +3,12 @@
   "author": "Đạt Nguyễn Bá Quý",
   "editor": "wokwi",
   "parts": [
-    { "type": "board-esp32-devkit-c-v4", "id": "esp", "top": 9.6, "left": -43.16, "attrs": {} },
+    { "type": "board-esp32-devkit-c-v4", "id": "esp", "top": 0, "left": 0, "attrs": {} },
     {
       "type": "wokwi-led",
       "id": "led1",
-      "top": -13.2,
-      "left": 109.4,
+      "top": -32.4,
+      "left": 128.6,
       "attrs": { "color": "red" }
     }
   ],
