@@ -1,89 +1,40 @@
 #include <Arduino.h>
 
-#define PIN_LED_RED     23
-#define PIN_LED_GREEN   21
-#define PIN_LED_YELLOW  22
+#define PIN_LED_RED 23
 
-// Non-blocking timer
+//Non-blocking
 bool IsReady(unsigned long &ulTimer, uint32_t millisecond) {
   if (millis() - ulTimer < millisecond) return false;
   ulTimer = millis();
   return true;
 }
 
-enum LedState {
-  RED,
-  GREEN,
-  YELLOW
-};
-
 void setup() {
+  // put your setup code here, to run once:
   printf("WELCOME IOT\n");
-
   pinMode(PIN_LED_RED, OUTPUT);
-  pinMode(PIN_LED_GREEN, OUTPUT);
-  pinMode(PIN_LED_YELLOW, OUTPUT);
 }
 
+//Non-Blocking
 void loop() {
-  static LedState state = RED;
-
-  static unsigned long stateTimer = 0;
-  static unsigned long blinkTimer = 0;
-
-  static bool ledStatus = false;
-
-  switch (state) {
-
-    case RED:
-      if (IsReady(blinkTimer, 500)) {
-        ledStatus = !ledStatus;
-        digitalWrite(PIN_LED_RED, ledStatus);
-        printf("LED [RED] [%s]\n", ledStatus ? "ON" : "OFF");
-      }
-
-      digitalWrite(PIN_LED_GREEN, LOW);
-      digitalWrite(PIN_LED_YELLOW, LOW);
-
-      if (IsReady(stateTimer, 5000)) {
-        state = GREEN;
-        ledStatus = false;
-        printf("RED -> GREEN\n");
-      }
-      break;
-
-    case GREEN:
-      if (IsReady(blinkTimer, 500)) {
-        ledStatus = !ledStatus;
-        digitalWrite(PIN_LED_GREEN, ledStatus);
-        printf("LED [GREEN] [%s]\n", ledStatus ? "ON" : "OFF");
-      }
-
-      digitalWrite(PIN_LED_RED, LOW);
-      digitalWrite(PIN_LED_YELLOW, LOW);
-
-      if (IsReady(stateTimer, 7000)) {
-        state = YELLOW;
-        ledStatus = false;
-        printf("GREEN -> YELLOW\n");
-      }
-      break;
-
-    case YELLOW:
-      if (IsReady(blinkTimer, 300)) {
-        ledStatus = !ledStatus;
-        digitalWrite(PIN_LED_YELLOW, ledStatus);
-        printf("LED [YELLOW] [%s]\n", ledStatus ? "ON" : "OFF");
-      }
-
-      digitalWrite(PIN_LED_RED, LOW);
-      digitalWrite(PIN_LED_GREEN, LOW);
-
-      if (IsReady(stateTimer, 3000)) {
-        state = RED;
-        ledStatus = false;
-        printf("YELLOW -> RED\n");
-      }
-      break;
+  static unsigned long ulTimer = 0;
+  static bool lesStatus = false;
+  if (IsReady(ulTimer, 500)){
+    lesStatus = !lesStatus;
+    printf("LES IS [%s]\n",lesStatus ? "ON" : "OFF");
+    digitalWrite(PIN_LED_RED, lesStatus ? HIGH : LOW);
   }
 }
+
+//BLOCKING
+// void loop() {
+//   // put your main code here, to run repeatedly:
+//   // static int i = 0;
+//   // printf("Loop running ...%d\n",++i);
+//   // delay(1000);
+
+//   digitalWrite(PIN_LED_RED, HIGH); // Turn LED ON
+//   delay(500); // Wait for 500ms
+//   digitalWrite(PIN_LED_RED, LOW); // Turn LED OFF
+//   delay(500); // Wait for 500ms  
+// }
