@@ -1,4 +1,5 @@
 #include <Arduino.h>
+#include <TM1637Display.h>
 
 #define PIN_LED_RED     25
 #define PIN_LED_YELLOW  32
@@ -9,6 +10,11 @@
 #define TIME_GREEN   7000
 
 #define BLINK_TIME   500   
+
+#define CLK 18
+#define DIO 19
+
+TM1637Display display(CLK, DIO);
 
 enum TrafficState {
   RED,
@@ -28,12 +34,24 @@ void allOff() {
   digitalWrite(PIN_LED_GREEN, LOW);
 }
 
+unsigned long getStateTime() {
+  switch (currentState) {
+    case RED: return TIME_RED;
+    case GREEN: return TIME_GREEN;
+    case YELLOW: return TIME_YELLOW;
+  }
+  return 0;
+}
+
 void setup() {
   Serial.begin(115200);
 
   pinMode(PIN_LED_RED, OUTPUT);
   pinMode(PIN_LED_YELLOW, OUTPUT);
   pinMode(PIN_LED_GREEN, OUTPUT);
+
+  display.setBrightness(7);   // độ sáng 0–7
+  display.clear();
 
   stateTimer = millis();
   blinkTimer = millis();
@@ -42,7 +60,7 @@ void setup() {
 void loop() {
   unsigned long now = millis();
 
-  
+  /* ===== LED BLINK ===== */
   if (now - blinkTimer >= BLINK_TIME) {
     blinkTimer = now;
     ledStatus = !ledStatus;
@@ -51,13 +69,22 @@ void loop() {
 
     if (currentState == RED)
       digitalWrite(PIN_LED_RED, ledStatus);
-
     else if (currentState == GREEN)
       digitalWrite(PIN_LED_GREEN, ledStatus);
-
     else if (currentState == YELLOW)
       digitalWrite(PIN_LED_YELLOW, ledStatus);
   }
+
+  /* ===== COUNTDOWN DISPLAY ===== */
+  unsigned long remaining =
+    getStateTime() - (now - stateTimer);
+
+  int seconds = remaining / 1000;
+  if (seconds < 0) seconds = 0;
+
+  display.showNumberDec(seconds, true);
+
+  /* ===== STATE MACHINE ===== */
   switch (currentState) {
 
     case RED:
