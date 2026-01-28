@@ -1,26 +1,28 @@
 #include <Arduino.h>
 
-const int ledPin = 23;
-const int buttonPin = 14;
-
-bool ledState = false;        // trạng thái LED (ban đầu tắt)
-bool lastButtonState = HIGH; // vì dùng INPUT_PULLUP
+int ledXanh = 25;  
+int ledVang = 26;  
+int ledDo   = 27;  
 
 void setup() {
-  pinMode(ledPin, OUTPUT);
-  pinMode(buttonPin, INPUT_PULLUP);
+  pinMode(ledXanh, OUTPUT);
+  pinMode(ledVang, OUTPUT);
+  pinMode(ledDo, OUTPUT);
+}
+
+void blinkLed(int pin, int seconds) {
+  for (int i = 0; i < seconds; i++) {
+    digitalWrite(pin, HIGH);
+    delay(1000);
+    digitalWrite(pin, LOW);
+    delay(1000);
+  }
 }
 
 void loop() {
-  bool buttonState = digitalRead(buttonPin);
+  blinkLed(ledXanh, 7);
 
-  // Phát hiện cạnh nhấn (từ HIGH -> LOW)
-  if (lastButtonState == HIGH && buttonState == LOW) {
-    ledState = !ledState;   // đảo trạng thái LED
-    delay(200);             // chống dội nút
-  }
+  blinkLed(ledVang, 3);
 
-  digitalWrite(ledPin, ledState);
-  lastButtonState = buttonState;
+  blinkLed(ledDo, 10);
 }
-
