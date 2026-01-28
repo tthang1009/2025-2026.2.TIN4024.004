@@ -1,40 +1,86 @@
 #include <Arduino.h>
 
-#define PIN_LED_RED 23
+#define PIN_LED_RED     25
+#define PIN_LED_YELLOW  33
+#define PIN_LED_GREEN   32
 
-//Non-blocking
-bool IsReady(unsigned long &ulTimer, uint32_t millisecond) {
-  if (millis() - ulTimer < millisecond) return false;
-  ulTimer = millis();
+#define BLINK_INTERVAL 500  // 1 giây = 1 lần nhấp nháy
+
+#define RED_BLINKS     5
+#define YELLOW_BLINKS  3
+#define GREEN_BLINKS   7
+
+enum LedState {
+  LED_RED,
+  LED_YELLOW,
+  LED_GREEN
+};
+
+bool IsReady(unsigned long &timer, uint32_t interval) {
+  if (millis() - timer < interval) return false;
+  timer = millis();
   return true;
 }
 
-void setup() {
-  // put your setup code here, to run once:
-  printf("WELCOME IOT\n");
-  pinMode(PIN_LED_RED, OUTPUT);
+void allOff() {
+  digitalWrite(PIN_LED_RED, LOW);
+  digitalWrite(PIN_LED_YELLOW, LOW);
+  digitalWrite(PIN_LED_GREEN, LOW);
 }
 
-//Non-Blocking
+void setup() {
+  Serial.begin(115200);
+  Serial.println("START");
+
+  pinMode(PIN_LED_RED, OUTPUT);
+  pinMode(PIN_LED_YELLOW, OUTPUT);
+  pinMode(PIN_LED_GREEN, OUTPUT);
+}
+
 void loop() {
-  static unsigned long ulTimer = 0;
-  static bool lesStatus = false;
-  if (IsReady(ulTimer, 500)){
-    lesStatus = !lesStatus;
-    printf("LES IS [%s]\n",lesStatus ? "ON" : "OFF");
-    digitalWrite(PIN_LED_RED, lesStatus ? HIGH : LOW);
+  static unsigned long timer = 0;
+  static LedState state = LED_RED;
+  static bool ledOn = false;
+  static int blinkCount = 0;
+
+  if (!IsReady(timer, BLINK_INTERVAL)) return;
+
+  ledOn = !ledOn;
+  allOff();
+
+  switch (state) {
+
+    case LED_RED:
+      digitalWrite(PIN_LED_RED, ledOn);
+      Serial.print("RED   : ");
+      Serial.println(ledOn ? "ON" : "OFF");
+
+      if (!ledOn && ++blinkCount >= RED_BLINKS) {
+        blinkCount = 0;
+        state = LED_YELLOW;
+      }
+      break;
+
+    case LED_YELLOW:
+      digitalWrite(PIN_LED_YELLOW, ledOn);
+      Serial.print("YELLOW: ");
+      Serial.println(ledOn ? "ON" : "OFF");
+
+      if (!ledOn && ++blinkCount >= YELLOW_BLINKS) {
+        blinkCount = 0;
+        state = LED_GREEN;
+      }
+      break;
+
+    case LED_GREEN:
+      digitalWrite(PIN_LED_GREEN, ledOn);
+      Serial.print("GREEN : ");
+      Serial.println(ledOn ? "ON" : "OFF");
+
+      if (!ledOn && ++blinkCount >= GREEN_BLINKS) {
+        blinkCount = 0;
+        state = LED_RED;
+      }
+      break;
   }
 }
-
-//BLOCKING
-// void loop() {
-//   // put your main code here, to run repeatedly:
-//   // static int i = 0;
-//   // printf("Loop running ...%d\n",++i);
-//   // delay(1000);
-
-//   digitalWrite(PIN_LED_RED, HIGH); // Turn LED ON
-//   delay(500); // Wait for 500ms
-//   digitalWrite(PIN_LED_RED, LOW); // Turn LED OFF
-//   delay(500); // Wait for 500ms  
-// }
