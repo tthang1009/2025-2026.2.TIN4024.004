@@ -1,18 +1,16 @@
 #include <Arduino.h>
 
-#define LED_PIN 23 // ESP32 thường dùng chân số 2 cho LED onboard
-
+#define PIN_LED_RED 23
 void setup()
 {
-  // put your setup code here, to run once:
-  printf("WELCOME IOT\n");
-  pinMode(LED_PIN, OUTPUT);
+
+  Serial.println("He thong den giao thong da cap nhat thoi gian!");
 }
 
 void loop()
 {
-  digitalWrite(LED_PIN, HIGH);
-  delay(1000);
-  digitalWrite(LED_PIN, LOW);
-  delay(1000);
+  digitalWrite(PIN_LED_RED, HIGH); // Turn LED ON
+  delay(500);                      // Wait for 500ms
+  digitalWrite(PIN_LED_RED, LOW);  // Turn LED OFF
+  delay(500);                      // Wait for 500ms
 }
