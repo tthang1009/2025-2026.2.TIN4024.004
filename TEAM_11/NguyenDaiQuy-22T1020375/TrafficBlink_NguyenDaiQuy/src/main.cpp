@@ -1,5 +1,4 @@
 #include <Arduino.h>
-#include <TM1637Display.h>
 
 // --- 1. CẤU HÌNH CHÂN ---
 #define RED_LED 23
@@ -12,13 +11,10 @@
 #define CLK 18
 #define DIO 19
 
-TM1637Display display(CLK, DIO);
-
 // --- 2. CÁC BIẾN QUẢN LÝ ---
 enum TrafficState { STATE_RED, STATE_GREEN, STATE_YELLOW };
 TrafficState currentState = STATE_RED;
 
-// Thời gian cài đặt (ms)
 const long TIME_RED = 5000;
 const long TIME_GREEN = 5000;
 const long TIME_YELLOW = 3000;
@@ -26,13 +22,111 @@ const long TIME_YELLOW = 3000;
 unsigned long previousMillis = 0; 
 long currentInterval = TIME_RED;  
 
-// Biến trạng thái
 bool isDisplayOn = true;         
 bool lastBtnState = HIGH;       
 bool lastStreetLightState = false;
+int lastShownSecond = -1;
 
-// *** BIẾN MỚI ĐỂ SỬA LỖI LAG ***
-int lastShownSecond = -1; // Lưu số giây vừa hiển thị để so sánh
+// --- 3. PHẦN TỰ VIẾT ĐỂ THAY THẾ THƯ VIỆN TM1637 ---
+
+// Mã Hex hiển thị số 0-9 trên LED 7 thanh
+const uint8_t SEG_MAP[] = {
+  0x3F, // 0
+  0x06, // 1
+  0x5B, // 2
+  0x4F, // 3
+  0x66, // 4
+  0x6D, // 5
+  0x7D, // 6
+  0x07, // 7
+  0x7F, // 8
+  0x6F  // 9
+};
+
+// Hàm gửi tín hiệu Start
+void tm1637Start() {
+  digitalWrite(DIO, LOW);
+  delayMicroseconds(2);
+  digitalWrite(CLK, LOW);
+}
+
+// Hàm gửi tín hiệu Stop
+void tm1637Stop() {
+  digitalWrite(DIO, LOW);
+  digitalWrite(CLK, LOW);
+  delayMicroseconds(2);
+  digitalWrite(CLK, HIGH);
+  delayMicroseconds(2);
+  digitalWrite(DIO, HIGH);
+}
+
+// Hàm gửi 1 byte dữ liệu
+void tm1637WriteByte(uint8_t b) {
+  for (int i = 0; i < 8; i++) {
+    digitalWrite(CLK, LOW);
+    if (b & 0x01) digitalWrite(DIO, HIGH);
+    else digitalWrite(DIO, LOW);
+    delayMicroseconds(3);
+    b >>= 1;
+    digitalWrite(CLK, HIGH);
+    delayMicroseconds(3);
+  }
+  
+  // Đợi phản hồi ACK (Clock thứ 9)
+  digitalWrite(CLK, LOW);
+  digitalWrite(DIO, LOW); // Kéo DIO xuống để chờ ACK
+  digitalWrite(CLK, HIGH);
+  digitalWrite(CLK, LOW);
+}
+
+// Hàm hiển thị số (Thay thế display.showNumberDec)
+// Chỉ hiển thị số ở hàng đơn vị và chục (vì đèn giao thông < 99s)
+void showNumberManual(int num) {
+  // 1. Gửi lệnh cài đặt dữ liệu (Data Command)
+  tm1637Start();
+  tm1637WriteByte(0x40); // 0x40: Chế độ ghi dữ liệu
+  tm1637Stop();
+
+  // 2. Gửi dữ liệu hiển thị vào địa chỉ C0 (LED đầu tiên)
+  tm1637Start();
+  tm1637WriteByte(0xC0); // 0xC0: Địa chỉ bắt đầu
+
+  // Xử lý hiển thị (để giống thư viện, ta tắt 2 led đầu, hiện số ở 2 led cuối)
+  tm1637WriteByte(0x00); // LED 1: Tắt
+  tm1637WriteByte(0x00); // LED 2: Tắt
+  
+  if (num > 9) {
+    tm1637WriteByte(SEG_MAP[num / 10]); // LED 3: Hàng chục
+  } else {
+    tm1637WriteByte(0x00); // Tắt nếu không có hàng chục
+  }
+  
+  tm1637WriteByte(SEG_MAP[num % 10]); // LED 4: Hàng đơn vị
+  tm1637Stop();
+
+  // 3. Gửi lệnh điều khiển hiển thị (Display Control) - Bật màn hình + Độ sáng
+  tm1637Start();
+  tm1637WriteByte(0x88 + 7); // 0x88 là bật, +7 là độ sáng max
+  tm1637Stop();
+}
+
+// Hàm xóa màn hình (Thay thế display.clear)
+void clearDisplayManual() {
+  tm1637Start();
+  tm1637WriteByte(0x40);
+  tm1637Stop();
+
+  tm1637Start();
+  tm1637WriteByte(0xC0);
+  for(int i=0; i<4; i++) tm1637WriteByte(0x00); // Gửi 0x00 để tắt hết
+  tm1637Stop();
+
+  tm1637Start();
+  tm1637WriteByte(0x88 + 7); 
+  tm1637Stop();
+}
+
+// --- 4. SETUP & LOOP ---
 
 void setup() {
   Serial.begin(115200);
@@ -44,11 +138,18 @@ void setup() {
   pinMode(BTN_PIN, INPUT_PULLUP);
   pinMode(LDR_PIN, INPUT);
 
-  display.setBrightness(7);
-  
-  Serial.println(">>> DA FIX LOI CHAM THOI GIAN <<<");
+  // Cấu hình chân cho màn hình (Quan trọng khi không dùng thư viện)
+  pinMode(CLK, OUTPUT);
+  pinMode(DIO, OUTPUT);
+  digitalWrite(CLK, HIGH);
+  digitalWrite(DIO, HIGH);
+
+  Serial.println(">>> DA FIX LOI CHAM + KHONG THU VIEN <<<");
   Serial.println("🔴 DEN DO: DUNG LAI (5s)");
   digitalWrite(RED_LED, HIGH);
+  
+  // Hiển thị số ban đầu
+  showNumberManual(TIME_RED/1000);
 }
 
 void turnOffTrafficLeds() {
@@ -61,7 +162,6 @@ void loop() {
   unsigned long currentMillis = millis();
 
   // --- NHIỆM VỤ A: ĐÈN ĐƯỜNG ---
-  // (Đã tối ưu: Chỉ đọc cảm biến mỗi 200ms để đỡ lag)
   static unsigned long lastLdrCheck = 0;
   if (currentMillis - lastLdrCheck > 200) { 
     lastLdrCheck = currentMillis;
@@ -87,9 +187,9 @@ void loop() {
     
     if (isDisplayOn) {
       Serial.println("📺 MAN HINH: ON");
-      lastShownSecond = -1; // Reset để cập nhật lại ngay
+      lastShownSecond = -1; 
     } else {
-      display.clear(); 
+      clearDisplayManual(); // Dùng hàm tự viết
       Serial.println("📴 MAN HINH: OFF");
     }
     delay(50); 
@@ -101,11 +201,11 @@ void loop() {
   long remainingSeconds = (currentInterval - timePassed) / 1000;
   if (remainingSeconds < 0) remainingSeconds = 0;
   
-  // *** KEY FIX: CHỈ CẬP NHẬT MÀN HÌNH KHI SỐ THAY ĐỔI ***
   if (isDisplayOn) {
     if (remainingSeconds != lastShownSecond) {
-      display.showNumberDec(remainingSeconds);
-      lastShownSecond = remainingSeconds; // Lưu lại số vừa hiện
+      // Gọi hàm tự viết thay vì thư viện
+      showNumberManual(remainingSeconds);
+      lastShownSecond = remainingSeconds; 
     }
   }
 
@@ -113,7 +213,7 @@ void loop() {
   if (timePassed >= currentInterval) {
     previousMillis = currentMillis;
     turnOffTrafficLeds();
-    lastShownSecond = -1; // Reset số hiển thị khi chuyển đèn
+    lastShownSecond = -1; 
 
     switch (currentState) {
       case STATE_RED:
