@@ -18,21 +18,21 @@ void setup(){
 
 void loop(){
     // put your main code here, to run repeatedly:
-    /* Bước 1: LED đỏ */
+    // Buoc 1: LED do //
     Serial.println("Buoc 1: BAT LED DO (GPIO 26)");
     digitalWrite(LED_RED, HIGH);
     digitalWrite(LED_YELLOW, LOW);
     digitalWrite(LED_GREEN, LOW);
     delay(1000);
 
-    /* Bước 2: LED vàng */
+    // Buoc 2: LED vang //
     Serial.println("Buoc 2: BAT LED VANG (GPIO 33)");
     digitalWrite(LED_RED, LOW);
     digitalWrite(LED_YELLOW, HIGH);
     digitalWrite(LED_GREEN, LOW);
     delay(1000);
 
-    /* Bước 3: LED xanh */
+    // Buoc 3: LED xanh //
     Serial.println("Buoc 3: BAT LED XANH (GPIO 32)");
     digitalWrite(LED_RED, LOW);
     digitalWrite(LED_YELLOW, LOW);
