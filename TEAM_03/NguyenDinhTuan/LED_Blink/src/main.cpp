@@ -6,7 +6,6 @@
 #define RED_PIN    25
 
 // Timing Definitions (in milliseconds)
-// Updated Red to 6000ms as requested
 #define GREEN_TIME  7000 
 #define YELLOW_TIME 3000
 #define RED_TIME    6000 
