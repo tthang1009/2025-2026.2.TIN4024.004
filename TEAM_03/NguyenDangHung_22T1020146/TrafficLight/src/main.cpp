@@ -13,13 +13,11 @@
 
 TM1637Display display(CLK, DIO);
 
-// ===== THỜI GIAN =====
 #define RED_TIME     4
 #define YELLOW_TIME  2
 #define GREEN_TIME   6
 
-// ===== BIẾN =====
-int state = 0; // 0=GREEN,1=YELLOW,2=RED
+int state = 0; 
 int remainSeconds = GREEN_TIME;
 bool blinkState = true;
 
@@ -49,7 +47,7 @@ void setup() {
 }
 
 void loop() {
-  // ===== ĐỌC NÚT (KHÔNG DELAY) =====
+  // ===== ĐỌC NÚT NHẤN =====
   if (millis() - lastButtonRead > 30) {
     lastButtonRead = millis();
     bool btn = digitalRead(BUTTON_PIN);
@@ -73,12 +71,11 @@ void loop() {
     static int halfCount = 0;
     halfCount++;
 
-    // mỗi 2 lần 0.5s = 1s
     if (halfCount >= 2) {
       halfCount = 0;
       remainSeconds--;
 
-      if (remainSeconds <= 0) {
+      if (remainSeconds < 0) {
         state = (state + 1) % 3;
 
         if (state == 0) remainSeconds = GREEN_TIME;
@@ -89,7 +86,6 @@ void loop() {
 
     setLight(state);
 
-    // ===== HIỂN THỊ =====
     if (displayOn) {
       display.showNumberDec(remainSeconds, true);
     }
