@@ -1,21 +1,29 @@
 #include <Arduino.h>
 #include <TM1637Display.h>
 
+// ----------- LED PINS -----------
 #define PIN_LED_RED     25
-#define PIN_LED_YELLOW  32
-#define PIN_LED_GREEN   33
+#define PIN_LED_YELLOW  33
+#define PIN_LED_GREEN   32
+#define PIN_LED_BLUE    21   // LED báo hệ thống chạy
 
+// ----------- BUTTON -------------
+#define PIN_BUTTON 23   // nối GND, INPUT_PULLUP
+
+// ----------- TIME (ms) ----------
 #define TIME_RED     10000
 #define TIME_YELLOW  3000
 #define TIME_GREEN   7000
 
-#define BLINK_TIME   500   
+#define BLINK_TIME   500
+#define COUNTDOWN_INTERVAL 1000
 
+// ----------- TM1637 -------------
 #define CLK 18
 #define DIO 19
-
 TM1637Display display(CLK, DIO);
 
+// ----------- STATE --------------
 enum TrafficState {
   RED,
   GREEN,
@@ -24,9 +32,17 @@ enum TrafficState {
 
 TrafficState currentState = RED;
 
+// ----------- TIMER --------------
 unsigned long stateTimer = 0;
 unsigned long blinkTimer = 0;
+unsigned long countdownTimer = 0;
+
+// ----------- FLAG ---------------
 bool ledStatus = false;
+bool systemStarted = false;
+bool lastButtonState = HIGH;
+
+int remainingSeconds = 0;
 
 void allOff() {
   digitalWrite(PIN_LED_RED, LOW);
@@ -34,13 +50,14 @@ void allOff() {
   digitalWrite(PIN_LED_GREEN, LOW);
 }
 
-unsigned long getStateTime() {
-  switch (currentState) {
-    case RED: return TIME_RED;
-    case GREEN: return TIME_GREEN;
-    case YELLOW: return TIME_YELLOW;
-  }
-  return 0;
+
+void setState(TrafficState newState, int timeMs) {
+  currentState = newState;
+  stateTimer = millis();
+  countdownTimer = millis();
+  remainingSeconds = timeMs / 1000;
+  if(systemStarted)
+    display.showNumberDec(remainingSeconds, true);
 }
 
 void setup() {
@@ -49,23 +66,46 @@ void setup() {
   pinMode(PIN_LED_RED, OUTPUT);
   pinMode(PIN_LED_YELLOW, OUTPUT);
   pinMode(PIN_LED_GREEN, OUTPUT);
+  pinMode(PIN_LED_BLUE, OUTPUT);
 
-  display.setBrightness(7);   // độ sáng 0–7
+  pinMode(PIN_BUTTON, INPUT_PULLUP);
+
+  display.setBrightness(0x0f);
   display.clear();
 
-  stateTimer = millis();
-  blinkTimer = millis();
+  allOff();
+  digitalWrite(PIN_LED_BLUE, LOW);
 }
 
 void loop() {
   unsigned long now = millis();
 
-  /* ===== LED BLINK ===== */
+  bool buttonState = digitalRead(PIN_BUTTON);
+  if (lastButtonState == HIGH && buttonState == LOW) {
+    systemStarted = !systemStarted;
+
+    if (systemStarted) {
+      Serial.println("SYSTEM STARTED");
+      digitalWrite(PIN_LED_BLUE, HIGH);
+      setState(RED, TIME_RED);
+    } else {
+      Serial.println("SYSTEM STOPPED");
+      allOff();
+      digitalWrite(PIN_LED_BLUE, LOW);
+      display.clear();
+    }
+    delay(50); 
+  }
+  lastButtonState = buttonState;
+
+
   if (now - blinkTimer >= BLINK_TIME) {
     blinkTimer = now;
     ledStatus = !ledStatus;
 
     allOff();
+    if(systemStarted)
+      digitalWrite(PIN_LED_BLUE, ledStatus);
 
     if (currentState == RED)
       digitalWrite(PIN_LED_RED, ledStatus);
@@ -75,39 +115,33 @@ void loop() {
       digitalWrite(PIN_LED_YELLOW, ledStatus);
   }
 
-  /* ===== COUNTDOWN DISPLAY ===== */
-  unsigned long remaining =
-    getStateTime() - (now - stateTimer);
+  if (now - countdownTimer >= COUNTDOWN_INTERVAL && systemStarted) {
+    countdownTimer = now;
 
-  int seconds = remaining / 1000;
-  if (seconds < 0) seconds = 0;
+    if (remainingSeconds > 0) {
+      remainingSeconds--;
+      display.showNumberDec(remainingSeconds, true);
+    }
+  }
 
-  display.showNumberDec(seconds, true);
 
-  /* ===== STATE MACHINE ===== */
   switch (currentState) {
 
     case RED:
       if (now - stateTimer >= TIME_RED) {
-        currentState = GREEN;
-        stateTimer = now;
-        Serial.println("CHANGE TO GREEN");
+        setState(GREEN, TIME_GREEN);
       }
       break;
 
     case GREEN:
       if (now - stateTimer >= TIME_GREEN) {
-        currentState = YELLOW;
-        stateTimer = now;
-        Serial.println("CHANGE TO YELLOW");
+        setState(YELLOW, TIME_YELLOW);
       }
       break;
 
     case YELLOW:
       if (now - stateTimer >= TIME_YELLOW) {
-        currentState = RED;
-        stateTimer = now;
-        Serial.println("CHANGE TO RED");
+        setState(RED, TIME_RED);
       }
       break;
   }
