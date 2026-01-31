@@ -1,197 +1,161 @@
 #include "utils.h"
-//----- LED -----
+
+//----- class BUTTON --------------------
+BUTTON::BUTTON()
+{
+    _pin = -1;
+    _prevValue = LOW;
+}
+BUTTON::~BUTTON()
+{
+}
+void BUTTON::setup(int pin)
+{
+    _pin = pin;
+    _prevValue = LOW;
+    pinMode(_pin, INPUT);
+}
+void BUTTON::processPressed()
+{
+    static ulong ulTimer = 0;
+
+    if (!IsReady(ulTimer, 10))
+        return;
+
+    int newValue = digitalRead(_pin);
+    if (newValue == _prevValue)
+        return;
+    _prevValue = newValue;
+}
+
+bool BUTTON::isPressed()
+{
+    return (_prevValue == HIGH);
+}
+
+//----- class LED --------------------
 LED::LED()
 {
     _pin = -1;
-    _state = false;
-    _previousMillis = 0;
+    _name = "UNKNOW";
+    _status = false;
 }
-void LED::setup(int pin)
+LED::~LED() {}
+
+const char *LED::getName()
+{
+    return _name.c_str();
+}
+
+void LED::setup(int pin, const char *name)
 {
     _pin = pin;
+    if (name && name[0] != 0)
+        _name = name;
+
+    _status = false;
     pinMode(_pin, OUTPUT);
+    digitalWrite(_pin, LOW);
 }
-void LED::blink(unsigned long interval)
+
+void LED::setStatus(bool bON)
 {
-    if (!IsReady(_previousMillis, interval))
+    digitalWrite(_pin, bON ? HIGH : LOW);
+}
+
+void LED::blink()
+{
+    static unsigned long ulTimer = 0;
+    if (!IsReady(ulTimer, 500))
         return;
-    _state = !_state;
-    digitalWrite(_pin, _state ? HIGH : LOW);
+    _status = !_status;
+    digitalWrite(_pin, _status ? HIGH : LOW);
 }
 
-//----- Trafic_Blink -----
-Trafic_Blink::Trafic_Blink()
+//----- class Traffic_Blink --------------------
+#define INDEX_LED_GREEN 0
+#define INDEX_LED_YELLOW 1
+#define INDEX_LED_RED 2
+Traffic_Blink::Traffic_Blink()
 {
-    _ledStatus = false;
-    _previousMillis = 0;
-}
-void Trafic_Blink::setupPin(int pinRed, int pinYellow, int pinGreen)
-{
-    _LEDs[0] = pinGreen;
-    _LEDs[1] = pinYellow;
-    _LEDs[2] = pinRed;
-    pinMode(pinRed, OUTPUT);
-    pinMode(pinYellow, OUTPUT);
-    pinMode(pinGreen, OUTPUT);
-
-    _idxLED = 0;
-}
-void Trafic_Blink::setupWaitTime(uint32_t redWait, uint32_t yellowWait, uint32_t greenWait)
-{
-    _waitTime[0] = greenWait * 1000;
-    _waitTime[1] = yellowWait * 1000;
-    _waitTime[2] = redWait * 1000;
+    _idxLED = INDEX_LED_GREEN;
+    _waitTime[INDEX_LED_GREEN] = 7 * 1000;
+    _waitTime[INDEX_LED_YELLOW] = 3 * 1000;
+    _waitTime[INDEX_LED_RED] = 5 * 1000;
+    _secondCount = 0;
 }
 
-void Trafic_Blink::run(LDR& ldrSensor) 
+Traffic_Blink::~Traffic_Blink()
 {
+}
+void Traffic_Blink::setup_Pin(int pinRed, int pinYellow, int pinGreen)
+{
+    _leds[INDEX_LED_GREEN].setup(pinGreen, "GREEN");
+    _leds[INDEX_LED_YELLOW].setup(pinYellow, "YELLOW");
+    _leds[INDEX_LED_RED].setup(pinRed, "RED");
+}
+void Traffic_Blink::setup_WaitTime(int redTimer, int yellowTimer, int greenTimer)
+{
+    _idxLED = INDEX_LED_GREEN;
+    _waitTime[INDEX_LED_GREEN] = greenTimer * 1000;
+    _waitTime[INDEX_LED_YELLOW] = yellowTimer * 1000;
+    _waitTime[INDEX_LED_RED] = redTimer * 1000;
+    _secondCount = 0;
+}
+void Traffic_Blink::blink(bool showLogger)
+{
+    static unsigned long ulTimer = 0;
     static uint32_t count = _waitTime[_idxLED];
-    static int secondCount = 0;
-    static bool prevDark = false;
+    static bool ledStatus = false;
 
-    if (!IsReady(_previousMillis, 500)) return;
-
-    //bool isDark = (ldrSensor.getValue() > LDR::DAY_THRESHOLD);
-    int adcValue;
-    ldrSensor.readLux(&adcValue);
-    bool isDark = (adcValue > LDR::DAY_THRESHOLD);
-
-    if (isDark)
-    {
-        // If isDark = true => Blink only Yellow LED
-        if (prevDark != isDark)
-        {
-            prevDark = isDark;
-            digitalWrite(_LEDs[0], LOW); // GREEN OFF
-            digitalWrite(_LEDs[2], LOW); // RED OFF
-            printf("IT IS DARK!!!!\n");
-        }
-
-        _ledStatus = !_ledStatus;
-        digitalWrite(_LEDs[1], _ledStatus ? HIGH : LOW); // YELLOW BLINKING
+    if (!IsReady(ulTimer, 500))
         return;
-    }
-
-    if (prevDark != isDark && prevDark == true)
-    {
-        // Change from isDark = true to isDark = false
-        printf("YEAH!!! IT IS DAY!!!!\n");
-        prevDark = isDark;
-        _ledStatus = false;
-        _idxLED = 0;
-        count = _waitTime[_idxLED];
-    }
 
     if (count == _waitTime[_idxLED])
     {
-        secondCount = (count / 1000) - 1;
+        _secondCount = (count / 1000) - 1;
 
-        _ledStatus = true;
+        ledStatus = true;
         for (size_t i = 0; i < 3; i++)
         {
             if (i == _idxLED)
             {
-                digitalWrite(_LEDs[i], HIGH);
-                printf("LED [%-6s] ON => %d Seconds\n", ledString(_LEDs[i]), count / 1000);
+                _leds[i].setStatus(true);
+                if (showLogger)
+                    printf("LED [%-6s] ON => %d Seconds\n", _leds[i].getName(), count / 1000);
             }
             else
-                digitalWrite(_LEDs[i], LOW);
+                _leds[i].setStatus(false);
         }
     }
     else
     {
-        _ledStatus = !_ledStatus;
-        digitalWrite(_LEDs[_idxLED], _ledStatus ? HIGH : LOW);
+        ledStatus = !ledStatus;
+        _leds[_idxLED].setStatus(ledStatus);
     }
 
-    if (_ledStatus)
+    if (ledStatus)
     {
-        printf(" [%s] => seconds: %d \n", ledString(_LEDs[_idxLED]), secondCount);
-        --secondCount;
+        if (showLogger)
+            printf(" [%s] => seconds: %d \n", _leds[_idxLED].getName(), _secondCount);
+        --_secondCount;
     }
 
     count -= 500;
     if (count > 0)
         return;
 
-    _idxLED = (_idxLED + 1) % 3; // Next LED => _idxLED = 0,1,2,...
+    _idxLED = (_idxLED + 1) % 3; // Next LED => idxLED = 0,1,2,...
     count = _waitTime[_idxLED];
+    //_secondCount = 0;
 }
-
-const char *Trafic_Blink::ledString(int pin)
+int Traffic_Blink::getCount()
 {
-    if (pin == _LEDs[2])
-        return "RED";
-    else if (pin == _LEDs[1])
-        return "YELLOW";
-    else if (pin == _LEDs[0])
-        return "GREEN";
-    else
-        return "UNKNOWN";
+    return _secondCount + 1;
 }
+//----- class LED --------------------
 
-//----- LDR -----
-int LDR::DAY_THRESHOLD = 2000;
-LDR::LDR()
-{
-    _pin = -1;
-    _value = 0;
-    _vcc5Volt = true;
-}
-void LDR::setup(int pin, bool vcc5Volt)
-{
-    _pin = pin;
-    _vcc5Volt = vcc5Volt;
-    pinMode(_pin, INPUT);
-}
-int LDR::getValue()
-{
-    _value = analogRead(_pin);
-    return _value;
-}
-
-float LDR::readLux(int *analogValue)
-{
-    static float prevLux = -1.0;
-    float voltage, resistance, lux;
-
-    getValue();
-
-    if (analogValue != nullptr)
-    {
-        *analogValue = _value;
-    }
-
-    if (_vcc5Volt)
-    {
-        // VCC = 5V
-        voltage = (float)_value / 4096.0 * 5.0;
-        resistance = 2000 * voltage / (1 - voltage / 5.0);
-        lux = pow(50 * 1e3 * pow(10, 0.7) / resistance, (1 / 0.7));
-        return lux;
-    }
-    else
-    {
-        // VCC = 3.3V
-        voltage = (float)_value / 4096.0 * 3.3 ;
-        resistance = 2000 * voltage / (1 - voltage / 3.3);
-        lux = pow(33 * 1e3 * pow(10, 0.7) / resistance, (1 / 0.7));
-    }
-
-    if (lux != prevLux)
-    {
-        prevLux = lux;
-        if (prevLux >= 1.0)
-            printf("LDR Analog: %d, Voltage: %.2f V, Resistance: %.2f Ohm, Light Intensity: %.2f[%.0f] lux\n", _value, voltage, resistance, lux, prevLux);
-        else
-            printf("LDR Analog: %d, Voltage: %.2f V, Resistance: %.2f Ohm, Light Intensity: %.2f[%.1f] lux\n", _value, voltage, resistance, lux, prevLux);
-    }
-
-    return lux;
-}
-
-//----- Functions -----
-// Non-blocking
+// Hàm kiểm tra thời gian đã trôi qua - Non-Blocking
 bool IsReady(unsigned long &ulTimer, uint32_t millisecond)
 {
     if (millis() - ulTimer < millisecond)
@@ -199,7 +163,6 @@ bool IsReady(unsigned long &ulTimer, uint32_t millisecond)
     ulTimer = millis();
     return true;
 }
-
 // Định dạng chuỗi %s,%d,...
 String StringFormat(const char *fmt, ...)
 {

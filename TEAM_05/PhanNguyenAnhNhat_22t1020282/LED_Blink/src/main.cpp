@@ -1,3 +1,4 @@
+
 #include <Arduino.h>
 #include <TM1637Display.h>
 
@@ -49,17 +50,19 @@ void allOff() {
 
 bool isDark() {
   int ldrValue = analogRead(PIN_LDR);
-  Serial.print("LDR: ");
+ // Serial.print("LDR: ");
   Serial.println(ldrValue);
   return ldrValue < LDR_THRESHOLD;
 }
 
 void setState(TrafficState newState, int timeMs) {
   currentState = newState;
-  stateTimer = millis();
+  stateTimer = millis(); 
+  if(systemStarted){
   countdownTimer = millis();
   remainingSeconds = timeMs / 1000;
   display.showNumberDec(remainingSeconds, true);
+}
 }
 
 void setup() {
@@ -101,7 +104,7 @@ void loop() {
   }
   lastButtonState = buttonState;
 
-  if (!systemStarted) return;
+ // if (!systemStarted) return;
   bool dark = isDark();
 
   if (dark) {
