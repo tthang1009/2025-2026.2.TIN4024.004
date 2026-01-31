@@ -1,54 +1,54 @@
 #pragma once
 #include <Arduino.h>
-#include <TM1637Display.h>
-
-class BUTTON
-{
-public:
-    BUTTON();
-    ~BUTTON();
-    void setup(int pin);
-    void processPressed();
-    bool isPressed();
-protected:
-    int _pin;
-    int _prevValue;
-};
 
 class LED
 {
 public:
     LED();
-    virtual ~LED();
-    const char *getName();
-    void setup(int pin, const char *name);
-    void setStatus(bool bON);
-    void blink();
+    void setup(int pin);
+    void blink(unsigned long interval = 500);
 
-protected:
+private:
     int _pin;
-    bool _status;
-    String _name;
+    bool _state;
+    unsigned long _previousMillis;
 };
 
-class Traffic_Blink
+class LDR
 {
 public:
-    Traffic_Blink();
-    ~Traffic_Blink();
-    void setup_Pin(int pinRed, int pinYellow, int pinGreen);
-    void setup_WaitTime(int redTimer = 5, int yellowTimer = 3, int greenTimer = 7); // seconds
-    void blink(bool showLogger = false);
-    int getCount();
+    LDR();
+    void setup(int pin, bool vcc5Volt = true); // VCC = 3.3V or 5V
+    int getValue(); // Analog value 0-4095
+    float readLux(int* analogValue = nullptr); // Return light intensity in lux
 
-protected:
-    LED _leds[3];
-    int _waitTime[3];
-    int _idxLED;
-    int _secondCount;
+    static int DAY_THRESHOLD;
+private:
+    int _pin;
+    int _value;
+    bool _vcc5Volt;
 };
 
-// Hàm kiểm tra thời gian đã trôi qua - Non-Blocking
-bool IsReady(unsigned long &ulTimer, uint32_t millisecond = 500);
+class Trafic_Blink
+{
+public:
+    Trafic_Blink();
+    void setupPin(int pinRed, int pinYellow, int pinGreen);
+    void setupWaitTime(uint32_t redWait = 5, uint32_t yellowWait = 3, uint32_t greenWait = 10); // seconds
+    void run(LDR& ldrSensor); 
+    const char *ledString(int pin);
+
+private:
+    bool _ledStatus;
+    unsigned long _previousMillis;
+    int _LEDs[3];
+    int _idxLED;
+    uint32_t _waitTime[3];
+};
+
+
+
+bool IsReady(unsigned long &ulTimer, uint32_t millisecond = 1000);
+
 // Định dạng chuỗi %s,%d,...
 String StringFormat(const char *fmt, ...);
