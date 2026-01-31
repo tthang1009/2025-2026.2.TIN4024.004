@@ -72,6 +72,13 @@
       "left": -125.35,
       "rotate": 90,
       "attrs": { "value": "1000" }
+    },
+    {
+      "type": "wokwi-photoresistor-sensor",
+      "id": "ldr1",
+      "top": 204.8,
+      "left": -200.8,
+      "attrs": {}
     }
   ],
   "connections": [
@@ -93,7 +100,10 @@
     [ "sevseg1:DIO", "esp:19", "green", [ "h124.8", "v192" ] ],
     [ "sevseg1:CLK", "esp:18", "green", [ "h134.4", "v201.6" ] ],
     [ "led1:A", "r3:1", "green", [ "h0" ] ],
-    [ "r3:2", "esp:25", "green", [ "h0", "v18" ] ]
+    [ "r3:2", "esp:25", "green", [ "h0", "v18" ] ],
+    [ "ldr1:GND", "esp:GND.1", "black", [ "h9.6", "v-38.8" ] ],
+    [ "ldr1:VCC", "esp:5V", "red", [ "h9.6", "v19.2" ] ],
+    [ "ldr1:AO", "esp:13", "green", [ "h19.2", "v-48.7" ] ]
   ],
   "dependencies": {}
 }
