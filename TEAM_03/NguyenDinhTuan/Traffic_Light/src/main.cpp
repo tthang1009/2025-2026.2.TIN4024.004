@@ -5,58 +5,49 @@
 #define PIN_LED_YELLOW  33
 #define PIN_LED_GREEN   32
 
-// TM1637 Connection Pins
 #define CLK 15
 #define DIO 2
 
-// Interaction Pins
 #define PIN_BUTTON_DISPLAY 23
 #define PIN_LED_BLUE    21
 
-// Initialize Objects
 TM1637Display display(CLK, DIO);
 BUTTON btnBlue;
 LED ledBlue;
 Traffic_Blink traffic;
 
 // --- GLOBAL STATE ---
-// Initialized to true so the system is ON by default
 bool displayMode = true; 
 
-/**
- * Handles button logic for Toggling Display Mode.
- */
 void ProcessButtonPressed()
 {
   static int prevSecond = -1;
   static bool lastButtonState = false; 
 
-  // 1. Read Hardware State
   btnBlue.processPressed();
   bool currentButtonState = btnBlue.isPressed();
 
-  // 2. Edge Detection: Check if button went from NOT PRESSED to PRESSED
+  // Edge Detection for Toggle
   if (currentButtonState == true && lastButtonState == false)
   {
-      displayMode = !displayMode; // Toggle the logical mode
+      displayMode = !displayMode; 
 
-      // Handle feedback (LEDs and Serial Log)
       if (displayMode) 
       {
           ledBlue.setStatus(true);
-          printf("*** DISPLAY ON ***\n");
+          printf("*** DISPLAY TOGGLED: ON ***\n");
       } 
       else 
       {
           ledBlue.setStatus(false);
-          display.clear(); // Clear display immediately
-          printf("*** DISPLAY OFF ***\n");
+          display.clear(); 
+          printf("*** DISPLAY TOGGLED: OFF ***\n");
       }
   }
   
   lastButtonState = currentButtonState;
 
-  // 3. Update 7-Segment Display if Mode is Active
+  // Update Display
   if (displayMode)
   {
     int secondCount = traffic.getCount();
@@ -72,30 +63,25 @@ void ProcessButtonPressed()
 void setup()
 {
   Serial.begin(115200);
+  printf("*** PROJECT TRAFFIC LIGHT (SYNCED) ***\n");
 
-  // Setup Hardware
   btnBlue.setup(PIN_BUTTON_DISPLAY);
   ledBlue.setup(PIN_LED_BLUE, "BLUE");
   
-  // Setup Display
   display.setBrightness(0x0a);
   display.clear();
 
-  // Setup Traffic Logic
   traffic.setup_Pin(PIN_LED_RED, PIN_LED_YELLOW, PIN_LED_GREEN);
   traffic.setup_WaitTime(5, 3, 7); 
 
-  // --- SET INITIAL STATE ---
-  displayMode = true;        // Ensure logical state is TRUE
-  ledBlue.setStatus(true);   // Turn on Blue indicator LED
+  // Default ON
+  displayMode = true;        
+  ledBlue.setStatus(true);   
   printf("*** SYSTEM STARTED: DISPLAY ON ***\n");
 }
 
 void loop()
 {
   ProcessButtonPressed();
-
-  // Run traffic blink logic
-  // Pass 'displayMode' so the Serial Logger only prints when mode is ON
   traffic.blink(displayMode);
 }

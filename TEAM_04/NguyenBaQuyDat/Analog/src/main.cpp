@@ -1,5 +1,5 @@
 #include <TM1637Display.h>
-#include <esp32-hal.h>
+#include <HWCDC.h>
 #include <HardwareSerial.h>
 
 // Pins
@@ -27,60 +27,61 @@ void setup()
 float getLux()
 {
   int analogValue = analogRead(LDR_PIN);
-  // ESP32 ADC is 12-bit (4096) and 3.3V
   float voltage = analogValue / 4095. * 3.3;
   float resistance = 2000 * voltage / (1 - voltage / 3.3);
   float lux = pow(RL10 * 1e3 * pow(10, GAMMA) / resistance, (1 / GAMMA));
   return lux;
 }
 
+// Hàm bổ trợ để thực hiện việc nhấp nháy đèn trong khi đếm ngược
+void blinkAndCountdown(int seconds, int ledPin)
+{
+  for (int i = seconds; i > 0; i--)
+  {
+    display.showNumberDec(i);
+
+    // Kiểm tra ánh sáng: Nếu bất ngờ tối thì thoát ngay lập tức
+    if (getLux() < 10)
+      return;
+
+    // Hiệu ứng nhấp nháy trong 1 giây: 500ms sáng, 500ms tắt
+    digitalWrite(ledPin, HIGH);
+    delay(500);
+    digitalWrite(ledPin, LOW);
+    delay(500);
+  }
+}
+
 void nightMode()
 {
+  // Tắt các đèn không liên quan
   digitalWrite(RED_LED, LOW);
   digitalWrite(GREEN_LED, LOW);
-  // Nhấp nháy đèn vàng
+
+  // Nhấp nháy đèn vàng liên tục (Chu kỳ 1s)
   digitalWrite(YELLOW_LED, HIGH);
   delay(500);
   digitalWrite(YELLOW_LED, LOW);
   delay(500);
-  display.showNumberDec(0); // Hiển thị số 0 hoặc thông báo đêm
+  display.showNumberDec(0);
 }
 
 void dayMode()
 {
-  // Chu kỳ đèn giao thông đơn giản
-  // Đỏ
-  digitalWrite(RED_LED, HIGH);
-  for (int i = 5; i > 0; i--)
-  {
-    display.showNumberDec(i);
-    if (getLux() < 10)
-      return; // Kiểm tra nhanh nếu trời tối đột ngột
-    delay(1000);
-  }
-  digitalWrite(RED_LED, LOW);
+  // Thứ tự: Đỏ (5s) -> Xanh (5s) -> Vàng (3s)
 
-  // Xanh
-  digitalWrite(GREEN_LED, HIGH);
-  for (int i = 5; i > 0; i--)
-  {
-    display.showNumberDec(i);
-    if (getLux() < 10)
-      return;
-    delay(1000);
-  }
-  digitalWrite(GREEN_LED, LOW);
+  Serial.println("Day Mode: Red Blinking");
+  blinkAndCountdown(5, RED_LED);
+  if (getLux() < 10)
+    return;
 
-  // Vàng
-  digitalWrite(YELLOW_LED, HIGH);
-  for (int i = 3; i > 0; i--)
-  {
-    display.showNumberDec(i);
-    if (getLux() < 10)
-      return;
-    delay(1000);
-  }
-  digitalWrite(YELLOW_LED, LOW);
+  Serial.println("Day Mode: Green Blinking");
+  blinkAndCountdown(5, GREEN_LED);
+  if (getLux() < 10)
+    return;
+
+  Serial.println("Day Mode: Yellow Blinking");
+  blinkAndCountdown(3, YELLOW_LED);
 }
 
 void loop()

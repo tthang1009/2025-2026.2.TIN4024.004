@@ -4,7 +4,7 @@
 BUTTON::BUTTON()
 {
     _pin = -1;
-    _prevValue = HIGH; 
+    _prevValue = LOW;
 }
 BUTTON::~BUTTON()
 {
@@ -12,12 +12,12 @@ BUTTON::~BUTTON()
 void BUTTON::setup(int pin)
 {
     _pin = pin;
-    _prevValue = HIGH;
-    pinMode(_pin, INPUT_PULLUP); 
+    _prevValue = LOW;
+    pinMode(_pin, INPUT);
 }
 void BUTTON::processPressed()
 {
-    static unsigned long ulTimer = 0;
+    static ulong ulTimer = 0;
 
     if (!IsReady(ulTimer, 10))
         return;
@@ -30,14 +30,14 @@ void BUTTON::processPressed()
 
 bool BUTTON::isPressed()
 {
-    return (_prevValue == LOW);
+    return (_prevValue == HIGH);
 }
 
 //----- class LED --------------------
 LED::LED()
 {
     _pin = -1;
-    _name = "UNKNOWN";
+    _name = "UNKNOW";
     _status = false;
 }
 LED::~LED() {}
@@ -60,7 +60,6 @@ void LED::setup(int pin, const char *name)
 
 void LED::setStatus(bool bON)
 {
-    _status = bON;
     digitalWrite(_pin, bON ? HIGH : LOW);
 }
 
@@ -114,7 +113,6 @@ void Traffic_Blink::blink(bool showLogger)
 
     if (count == _waitTime[_idxLED])
     {
-        // Calculate initial count (e.g., 5000/1000 - 1 = 4)
         _secondCount = (count / 1000) - 1;
 
         ledStatus = true;
@@ -123,7 +121,6 @@ void Traffic_Blink::blink(bool showLogger)
             if (i == _idxLED)
             {
                 _leds[i].setStatus(true);
-                // Print the *Start* of the cycle
                 if (showLogger)
                     printf("LED [%-6s] ON => %d Seconds\n", _leds[i].getName(), count / 1000);
             }
@@ -137,34 +134,28 @@ void Traffic_Blink::blink(bool showLogger)
         _leds[_idxLED].setStatus(ledStatus);
     }
 
-    // Logic for countdown
     if (ledStatus)
     {
         if (showLogger)
             printf(" [%s] => seconds: %d \n", _leds[_idxLED].getName(), _secondCount);
-        
-        // Decrement AFTER printing to console
-        --_secondCount; 
+        --_secondCount;
     }
 
     count -= 500;
     if (count > 0)
         return;
 
-    _idxLED = (_idxLED + 1) % 3; 
+    _idxLED = (_idxLED + 1) % 3; // Next LED => idxLED = 0,1,2,...
     count = _waitTime[_idxLED];
+    //_secondCount = 0;
 }
-
 int Traffic_Blink::getCount()
 {
-    // FIX: Return +1 to match the console output.
-    // Console prints '4' then decrements to '3'. 
-    // This function returns '4' (3+1) so display matches console.
-    // When _secondCount is -1 (end of cycle), returns 0.
     return _secondCount + 1;
 }
+//----- class LED --------------------
 
-//----- Helper Functions --------------------
+// Hàm kiểm tra thời gian đã trôi qua - Non-Blocking
 bool IsReady(unsigned long &ulTimer, uint32_t millisecond)
 {
     if (millis() - ulTimer < millisecond)
@@ -172,7 +163,7 @@ bool IsReady(unsigned long &ulTimer, uint32_t millisecond)
     ulTimer = millis();
     return true;
 }
-
+// Định dạng chuỗi %s,%d,...
 String StringFormat(const char *fmt, ...)
 {
     va_list vaArgs;
