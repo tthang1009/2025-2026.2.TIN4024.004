@@ -9,5 +9,6 @@ extern bool extraMode;
 void handleButton();
 void showCountdown(const char* color, int seconds);
 void turnOffAllTrafficLED();
+float readLux();
 
 #endif
