@@ -1,6 +1,7 @@
 #include "main.h"
 #include "utils.h"
 
+// Pin define
 #define LED_RED     26
 #define LED_YELLOW  33
 #define LED_GREEN   32
