@@ -54,7 +54,7 @@ void dayMode()
   for (int i = 5; i > 0; i--)
   {
     display.showNumberDec(i);
-    if (getLux() < 10)
+    if (getLux() < 100)
       return; // Kiểm tra nhanh nếu trời tối đột ngột
     delay(1000);
   }
@@ -65,7 +65,7 @@ void dayMode()
   for (int i = 5; i > 0; i--)
   {
     display.showNumberDec(i);
-    if (getLux() < 10)
+    if (getLux() < 100)
       return;
     delay(1000);
   }
@@ -76,7 +76,7 @@ void dayMode()
   for (int i = 3; i > 0; i--)
   {
     display.showNumberDec(i);
-    if (getLux() < 10)
+    if (getLux() < 100)
       return;
     delay(1000);
   }
@@ -89,7 +89,7 @@ void loop()
   Serial.print("Lux: ");
   Serial.println(currentLux);
 
-  if (currentLux < 10)
+  if (currentLux < 100)
   {
     nightMode();
   }
