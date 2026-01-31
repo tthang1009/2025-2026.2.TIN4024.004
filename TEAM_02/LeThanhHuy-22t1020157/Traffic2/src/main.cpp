@@ -1,25 +1,24 @@
 #include <Arduino.h>
 #include <TM1637Display.h>
 
-// LED giao thông
+// ===== LED giao thông =====
 #define LED_GREEN   25
 #define LED_YELLOW  26
 #define LED_RED     27
 
-// LED xanh dương + nút
-#define LED_BLUE    21
+// ===== LED xanh dương + nút =====
+#define LED_BLUE    21     // mắc ngược: LOW = ON
 #define BUTTON_PIN  23
 
-// LDR
+// ===== LDR =====
 #define LDR_PIN     13
 
-// TM1637
+// ===== TM1637 =====
 #define CLK_PIN     18
 #define DIO_PIN     19
 
 TM1637Display display(CLK_PIN, DIO_PIN);
 
-// LED xanh dương mắc ngược → LOW = ON
 bool blueLedState = false;
 
 void setup() {
@@ -30,7 +29,7 @@ void setup() {
   pinMode(LED_BLUE, OUTPUT);
   pinMode(BUTTON_PIN, INPUT_PULLUP);
 
-  // LED xanh dương tắt ban đầu
+  // LED xanh dương tắt ban đầu (vì mắc ngược)
   digitalWrite(LED_BLUE, HIGH);
 
   display.setBrightness(7);
@@ -40,38 +39,43 @@ void setup() {
 }
 
 void loop() {
-  int lightValue = analogRead(LDR_PIN);
+  // ===== ĐỌC LDR =====
+  int lightValue = analogRead(LDR_PIN); // 0–4095
+  Serial.println(lightValue);
 
-  // Hiển thị LDR
+  // ===== HIỂN THỊ 7-SEG =====
   display.showNumberDec(lightValue, true);
 
-  // LED giao thông theo ánh sáng
+  // ===== LED GIAO THÔNG =====
   if (lightValue < 1500) {
     digitalWrite(LED_GREEN, HIGH);
     digitalWrite(LED_YELLOW, LOW);
     digitalWrite(LED_RED, LOW);
-  } else if (lightValue < 3000) {
+  }
+  else if (lightValue < 3000) {
     digitalWrite(LED_GREEN, LOW);
     digitalWrite(LED_YELLOW, HIGH);
     digitalWrite(LED_RED, LOW);
-  } else {
+  }
+  else {
     digitalWrite(LED_GREEN, LOW);
     digitalWrite(LED_YELLOW, LOW);
     digitalWrite(LED_RED, HIGH);
   }
 
-  // ===== XỬ LÝ NÚT BẤM (ỔN ĐỊNH) =====
+  // ===== XỬ LÝ NÚT BẤM (ỔN ĐỊNH NHẤT) =====
   if (digitalRead(BUTTON_PIN) == LOW) {
     blueLedState = !blueLedState;
+
+    // LED mắc ngược → đảo mức
     digitalWrite(LED_BLUE, blueLedState ? LOW : HIGH);
 
     Serial.println("Button pressed");
 
-    // CHỜ NHẢ NÚT
+    // chờ nhả nút
     while (digitalRead(BUTTON_PIN) == LOW) {
       delay(10);
     }
-
     delay(200); // chống dội
   }
 
