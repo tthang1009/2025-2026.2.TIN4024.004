@@ -1,20 +1,17 @@
 #include <Arduino.h>
 #include <TM1637Display.h>
 
-// ----------- LED PINS -----------
 #define PIN_LED_RED     25
 #define PIN_LED_YELLOW  33
 #define PIN_LED_GREEN   32
-#define PIN_LED_BLUE    21   // LED báo hệ thống chạy
+#define PIN_LED_BLUE    21   
 
-// ----------- BUTTON -------------
-#define PIN_BUTTON 23   // nối GND, INPUT_PULLUP
+#define PIN_BUTTON 23   
 
-// ----------- LDR ----------------
 #define PIN_LDR 13
-#define LDR_THRESHOLD 2000   // chỉnh nếu cần
+#define LDR_THRESHOLD 2000  
 
-// ----------- TIME (ms) ----------
+
 #define TIME_RED     10000
 #define TIME_YELLOW  3000
 #define TIME_GREEN   7000
@@ -22,12 +19,10 @@
 #define BLINK_TIME   500
 #define COUNTDOWN_INTERVAL 1000
 
-// ----------- TM1637 -------------
 #define CLK 18
 #define DIO 19
 TM1637Display display(CLK, DIO);
 
-// ----------- STATE --------------
 enum TrafficState {
   RED,
   GREEN,
@@ -36,19 +31,16 @@ enum TrafficState {
 
 TrafficState currentState = RED;
 
-// ----------- TIMER --------------
 unsigned long stateTimer = 0;
 unsigned long blinkTimer = 0;
 unsigned long countdownTimer = 0;
 
-// ----------- FLAG ---------------
 bool ledStatus = false;
 bool systemStarted = false;
 bool lastButtonState = HIGH;
 
 int remainingSeconds = 0;
 
-// ----------- FUNCTION -----------
 void allOff() {
   digitalWrite(PIN_LED_RED, LOW);
   digitalWrite(PIN_LED_YELLOW, LOW);
@@ -70,7 +62,6 @@ void setState(TrafficState newState, int timeMs) {
   display.showNumberDec(remainingSeconds, true);
 }
 
-// ----------- SETUP --------------
 void setup() {
   Serial.begin(115200);
 
@@ -92,7 +83,6 @@ void setup() {
 void loop() {
   unsigned long now = millis();
 
-  // ===== NÚT START / STOP =====
   bool buttonState = digitalRead(PIN_BUTTON);
   if (lastButtonState == HIGH && buttonState == LOW) {
     systemStarted = !systemStarted;
@@ -112,11 +102,8 @@ void loop() {
   lastButtonState = buttonState;
 
   if (!systemStarted) return;
-
-  // ===== KIỂM TRA SÁNG / TỐI =====
   bool dark = isDark();
 
-  // ===== CHẾ ĐỘ BAN ĐÊM =====
   if (dark) {
     if (now - blinkTimer >= BLINK_TIME) {
       blinkTimer = now;
@@ -130,7 +117,6 @@ void loop() {
     return;
   }
 
-  // ===== NHẤP NHÁY ĐÈN HIỆN TẠI =====
   if (now - blinkTimer >= BLINK_TIME) {
     blinkTimer = now;
     ledStatus = !ledStatus;
@@ -145,8 +131,6 @@ void loop() {
     else if (currentState == YELLOW)
       digitalWrite(PIN_LED_YELLOW, ledStatus);
   }
-
-  // ===== ĐẾM NGƯỢC =====
   if (now - countdownTimer >= COUNTDOWN_INTERVAL) {
     countdownTimer = now;
 
