@@ -10,6 +10,10 @@
 // ----------- BUTTON -------------
 #define PIN_BUTTON 23   // nối GND, INPUT_PULLUP
 
+// ----------- LDR ----------------
+#define PIN_LDR 13
+#define LDR_THRESHOLD 2000   // chỉnh nếu cần
+
 // ----------- TIME (ms) ----------
 #define TIME_RED     10000
 #define TIME_YELLOW  3000
@@ -44,22 +48,29 @@ bool lastButtonState = HIGH;
 
 int remainingSeconds = 0;
 
+// ----------- FUNCTION -----------
 void allOff() {
   digitalWrite(PIN_LED_RED, LOW);
   digitalWrite(PIN_LED_YELLOW, LOW);
   digitalWrite(PIN_LED_GREEN, LOW);
 }
 
+bool isDark() {
+  int ldrValue = analogRead(PIN_LDR);
+  Serial.print("LDR: ");
+  Serial.println(ldrValue);
+  return ldrValue < LDR_THRESHOLD;
+}
 
 void setState(TrafficState newState, int timeMs) {
   currentState = newState;
   stateTimer = millis();
   countdownTimer = millis();
   remainingSeconds = timeMs / 1000;
-  if(systemStarted)
-    display.showNumberDec(remainingSeconds, true);
+  display.showNumberDec(remainingSeconds, true);
 }
 
+// ----------- SETUP --------------
 void setup() {
   Serial.begin(115200);
 
@@ -69,6 +80,7 @@ void setup() {
   pinMode(PIN_LED_BLUE, OUTPUT);
 
   pinMode(PIN_BUTTON, INPUT_PULLUP);
+  pinMode(PIN_LDR, INPUT);
 
   display.setBrightness(0x0f);
   display.clear();
@@ -80,6 +92,7 @@ void setup() {
 void loop() {
   unsigned long now = millis();
 
+  // ===== NÚT START / STOP =====
   bool buttonState = digitalRead(PIN_BUTTON);
   if (lastButtonState == HIGH && buttonState == LOW) {
     systemStarted = !systemStarted;
@@ -94,18 +107,36 @@ void loop() {
       digitalWrite(PIN_LED_BLUE, LOW);
       display.clear();
     }
-    delay(50); 
+    delay(50);
   }
   lastButtonState = buttonState;
 
+  if (!systemStarted) return;
 
+  // ===== KIỂM TRA SÁNG / TỐI =====
+  bool dark = isDark();
+
+  // ===== CHẾ ĐỘ BAN ĐÊM =====
+  if (dark) {
+    if (now - blinkTimer >= BLINK_TIME) {
+      blinkTimer = now;
+      ledStatus = !ledStatus;
+
+      allOff();
+      digitalWrite(PIN_LED_YELLOW, ledStatus);
+      digitalWrite(PIN_LED_BLUE, ledStatus);
+    }
+    display.clear();
+    return;
+  }
+
+  // ===== NHẤP NHÁY ĐÈN HIỆN TẠI =====
   if (now - blinkTimer >= BLINK_TIME) {
     blinkTimer = now;
     ledStatus = !ledStatus;
 
     allOff();
-    if(systemStarted)
-      digitalWrite(PIN_LED_BLUE, ledStatus);
+    digitalWrite(PIN_LED_BLUE, ledStatus);
 
     if (currentState == RED)
       digitalWrite(PIN_LED_RED, ledStatus);
@@ -115,7 +146,8 @@ void loop() {
       digitalWrite(PIN_LED_YELLOW, ledStatus);
   }
 
-  if (now - countdownTimer >= COUNTDOWN_INTERVAL && systemStarted) {
+  // ===== ĐẾM NGƯỢC =====
+  if (now - countdownTimer >= COUNTDOWN_INTERVAL) {
     countdownTimer = now;
 
     if (remainingSeconds > 0) {
@@ -124,9 +156,7 @@ void loop() {
     }
   }
 
-
   switch (currentState) {
-
     case RED:
       if (now - stateTimer >= TIME_RED) {
         setState(GREEN, TIME_GREEN);
