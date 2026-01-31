@@ -37,7 +37,9 @@ float getLux()
 void nightMode()
 {
   digitalWrite(RED_LED, LOW);
+  delay(500);
   digitalWrite(GREEN_LED, LOW);
+  delay(500);
   // Nhấp nháy đèn vàng
   digitalWrite(YELLOW_LED, HIGH);
   delay(500);
