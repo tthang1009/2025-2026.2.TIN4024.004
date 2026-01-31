@@ -60,8 +60,7 @@ void setState(TrafficState newState, int timeMs) {
   if(systemStarted){
   countdownTimer = millis();
   remainingSeconds = timeMs / 1000;
-  display.showNumberDec(remainingSeconds, true);
-}
+  display.showNumberDec(remainingSeconds, true);}
 }
 
 void setup() {
@@ -124,8 +123,8 @@ void loop() {
     ledStatus = !ledStatus;
 
     allOff();
-    digitalWrite(PIN_LED_BLUE, ledStatus);
-
+    if(systemStarted)
+      digitalWrite(PIN_LED_BLUE, ledStatus);
     if (currentState == RED)
       digitalWrite(PIN_LED_RED, ledStatus);
     else if (currentState == GREEN)
