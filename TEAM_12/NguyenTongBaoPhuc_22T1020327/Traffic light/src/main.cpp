@@ -1,18 +1,15 @@
 #include <Arduino.h>
 #include <TM1637Display.h>
 
-// ===== LED =====
 #define LED_RED     27
 #define LED_YELLOW  26
 #define LED_GREEN   25
 #define LED_BLUE    21
 
-// ===== TM1637 =====
 #define CLK 18
 #define DIO 19
 TM1637Display display(CLK, DIO);
 
-// ===== BUTTON =====
 #define BUTTON_PIN 23
 
 volatile bool displayEnabled = true;
@@ -20,20 +17,17 @@ volatile bool buttonEvent = false;
 volatile unsigned long lastInterruptTime = 0;
 const unsigned long debounceDelay = 200;
 
-// ===== ISR nút nhấn =====
 void IRAM_ATTR handleButton() {
   unsigned long now = millis();
   if (now - lastInterruptTime > debounceDelay) {
     displayEnabled = !displayEnabled;
-    buttonEvent = true;           // báo có sự kiện nút bấm
+    buttonEvent = true;
     lastInterruptTime = now;
   }
 }
 
-// ===== Blink + Countdown =====
 void blinkLed(int pin, int times, const char* name) {
 
-  // ===== THÔNG BÁO ĐÈN BẬT =====
   Serial.print("LED[");
   Serial.print(name);
   Serial.print("] ON => ");
@@ -42,14 +36,12 @@ void blinkLed(int pin, int times, const char* name) {
 
   for (int i = times; i >= 0; i--) {
 
-    // ===== SERIAL =====
     Serial.print("[");
     Serial.print(name);
     Serial.print("] => ");
     Serial.print(i);
     Serial.println(" seconds");
 
-    // ===== DISPLAY + LED BLUE =====
     if (displayEnabled) {
       display.showNumberDec(i, true);
       digitalWrite(LED_BLUE, HIGH);
@@ -58,14 +50,13 @@ void blinkLed(int pin, int times, const char* name) {
       digitalWrite(LED_BLUE, LOW);
     }
 
-    // ===== LED BLINK =====
     if (i > 0) {
       digitalWrite(pin, HIGH);
       delay(500);
       digitalWrite(pin, LOW);
       delay(500);
     } else {
-      delay(1000); // giữ số 0
+      delay(1000);
     }
   }
 
@@ -99,7 +90,6 @@ void setup() {
 
 void loop() {
 
-  // ===== HIỂN THỊ TRẠNG THÁI NÚT =====
   if (buttonEvent) {
     if (displayEnabled) {
       Serial.println("DISPLAY: ON");
