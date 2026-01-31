@@ -4,7 +4,7 @@
 BUTTON::BUTTON()
 {
     _pin = -1;
-    _prevValue = HIGH; // Default HIGH because we use PullUp
+    _prevValue = HIGH; 
 }
 BUTTON::~BUTTON()
 {
@@ -13,15 +13,12 @@ void BUTTON::setup(int pin)
 {
     _pin = pin;
     _prevValue = HIGH;
-    // Diagram connects button to GND, so we need Internal Pullup
     pinMode(_pin, INPUT_PULLUP); 
 }
-
 void BUTTON::processPressed()
 {
     static unsigned long ulTimer = 0;
 
-    // Debounce check (10ms)
     if (!IsReady(ulTimer, 10))
         return;
 
@@ -33,7 +30,6 @@ void BUTTON::processPressed()
 
 bool BUTTON::isPressed()
 {
-    // Diagram connects to GND, so LOW means Pressed
     return (_prevValue == LOW);
 }
 
@@ -81,7 +77,6 @@ void LED::blink()
 #define INDEX_LED_GREEN 0
 #define INDEX_LED_YELLOW 1
 #define INDEX_LED_RED 2
-
 Traffic_Blink::Traffic_Blink()
 {
     _idxLED = INDEX_LED_GREEN;
@@ -94,15 +89,12 @@ Traffic_Blink::Traffic_Blink()
 Traffic_Blink::~Traffic_Blink()
 {
 }
-
 void Traffic_Blink::setup_Pin(int pinRed, int pinYellow, int pinGreen)
 {
-    // Mapping internal array index to physical LED objects
     _leds[INDEX_LED_GREEN].setup(pinGreen, "GREEN");
     _leds[INDEX_LED_YELLOW].setup(pinYellow, "YELLOW");
     _leds[INDEX_LED_RED].setup(pinRed, "RED");
 }
-
 void Traffic_Blink::setup_WaitTime(int redTimer, int yellowTimer, int greenTimer)
 {
     _idxLED = INDEX_LED_GREEN;
@@ -111,64 +103,64 @@ void Traffic_Blink::setup_WaitTime(int redTimer, int yellowTimer, int greenTimer
     _waitTime[INDEX_LED_RED] = redTimer * 1000;
     _secondCount = 0;
 }
-
 void Traffic_Blink::blink(bool showLogger)
 {
     static unsigned long ulTimer = 0;
     static uint32_t count = _waitTime[_idxLED];
     static bool ledStatus = false;
 
-    // Run logic every 500ms
     if (!IsReady(ulTimer, 500))
         return;
 
-    // Check if we just entered a new state or simply toggling
     if (count == _waitTime[_idxLED])
     {
+        // Calculate initial count (e.g., 5000/1000 - 1 = 4)
         _secondCount = (count / 1000) - 1;
-        ledStatus = true; // Force ON at start of cycle
-        
+
+        ledStatus = true;
         for (size_t i = 0; i < 3; i++)
         {
             if (i == _idxLED)
             {
                 _leds[i].setStatus(true);
+                // Print the *Start* of the cycle
                 if (showLogger)
                     printf("LED [%-6s] ON => %d Seconds\n", _leds[i].getName(), count / 1000);
             }
             else
-            {
                 _leds[i].setStatus(false);
-            }
         }
     }
     else
     {
-        // Blink logic: toggle status every 500ms
         ledStatus = !ledStatus;
         _leds[_idxLED].setStatus(ledStatus);
     }
 
-    // Logic for counting down seconds
+    // Logic for countdown
     if (ledStatus)
     {
         if (showLogger)
             printf(" [%s] => seconds: %d \n", _leds[_idxLED].getName(), _secondCount);
-        if (_secondCount > 0) _secondCount--;
+        
+        // Decrement AFTER printing to console
+        --_secondCount; 
     }
 
     count -= 500;
-    
-    // If timer runs out, move to next light
     if (count > 0)
         return;
 
-    _idxLED = (_idxLED + 1) % 3; // Cycle: 0->1->2->0...
+    _idxLED = (_idxLED + 1) % 3; 
     count = _waitTime[_idxLED];
 }
 
 int Traffic_Blink::getCount()
 {
+    // FIX: Return +1 to match the console output.
+    // Console prints '4' then decrements to '3'. 
+    // This function returns '4' (3+1) so display matches console.
+    // When _secondCount is -1 (end of cycle), returns 0.
     return _secondCount + 1;
 }
 

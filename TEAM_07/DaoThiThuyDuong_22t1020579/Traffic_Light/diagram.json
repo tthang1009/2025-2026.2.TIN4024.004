@@ -1,7 +1,7 @@
 {
   "version": 1,
   "author": "Dương Đào Thị Thùy",
-"editor": "wokwi",
+  "editor": "wokwi",
   "parts": [
     { "type": "board-esp32-devkit-c-v4", "id": "esp", "top": 48, "left": -91.16, "attrs": {} },
     {
@@ -72,6 +72,13 @@
       "top": 73.4,
       "left": 48,
       "attrs": { "color": "blue", "xray": "1" }
+    },
+    {
+      "type": "wokwi-photoresistor-sensor",
+      "id": "ldr1",
+      "top": 224,
+      "left": -296.8,
+      "attrs": {}
     }
   ],
   "connections": [
@@ -80,7 +87,7 @@
     [ "sevseg1:DIO", "esp:2", "green", [ "h0", "v220.8" ] ],
     [ "sevseg1:GND", "esp:GND.3", "black", [ "h28.8", "v124.8" ] ],
     [ "sevseg1:CLK", "esp:15", "green", [ "h9.6", "v201.6" ] ],
-    [ "sevseg1:VCC", "esp:5V", "red", [ "h19.2", "v211.2" ] ],
+    [ "sevseg1:VCC", "esp:5V", "red", [ "h19.2", "v240", "h-316.95" ] ],
     [ "led1:C", "esp:GND.1", "black", [ "h-48", "v221.2", "h9.6" ] ],
     [ "led2:C", "esp:GND.1", "black", [ "h-48", "v192.4" ] ],
     [ "led3:C", "esp:GND.1", "black", [ "h-48", "v0.4" ] ],
@@ -93,7 +100,10 @@
     [ "led4:C", "esp:GND.3", "black", [ "v19.2", "h-0.4" ] ],
     [ "led4:A", "esp:21", "blue", [ "v9.6" ] ],
     [ "btn1:1.l", "esp:GND.2", "black", [ "h0", "v-9.6" ] ],
-    [ "btn1:2.l", "esp:23", "blue", [ "h-9.6", "v-19" ] ]
+    [ "btn1:2.l", "esp:23", "blue", [ "h-9.6", "v-19" ] ],
+    [ "esp:GND.1", "ldr1:GND", "black", [ "h-9.45", "v48.4" ] ],
+    [ "ldr1:VCC", "esp:5V", "red", [ "h9.6", "v38.4", "h28.65" ] ],
+    [ "esp:13", "ldr1:AO", "green", [ "h-19.05", "v58.3" ] ]
   ],
   "dependencies": {}
 }
