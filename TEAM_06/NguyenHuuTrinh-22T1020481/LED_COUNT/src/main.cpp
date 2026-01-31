@@ -4,7 +4,6 @@
 #define LED_GREEN   32
 #define LED_BLUE    21
 #define BUTTON_PIN  23
-
 #define CLK 18
 #define DIO 19
 const uint8_t digitMap[] = {
