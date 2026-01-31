@@ -7,6 +7,7 @@
 #define LED_RED     27
 #define LED_BLUE    21
 #define BUTTON_PIN  23
+#define LDR_PIN     13
 
 #define CLK 18
 #define DIO 19
@@ -24,8 +25,11 @@ bool blinkState = true;
 bool displayOn = false;
 bool lastButton = HIGH;
 
-unsigned long last500ms = 0;
+unsigned long lastSecond = 0;
 unsigned long lastButtonRead = 0;
+
+#define DARK_THRESHOLD 1500
+#define SPEED 2
 
 void setLight(int s) {
   digitalWrite(LED_GREEN, s == 0 ? blinkState : LOW);
@@ -39,6 +43,7 @@ void setup() {
   pinMode(LED_RED, OUTPUT);
   pinMode(LED_BLUE, OUTPUT);
   pinMode(BUTTON_PIN, INPUT_PULLUP);
+  pinMode(LDR_PIN, INPUT);
 
   display.setBrightness(0x0f);
   display.clear();
@@ -47,7 +52,10 @@ void setup() {
 }
 
 void loop() {
-  // ===== ĐỌC NÚT NHẤN =====
+  int lightValue = analogRead(LDR_PIN);
+  bool isDark = lightValue > DARK_THRESHOLD;
+
+  // ===== NÚT =====
   if (millis() - lastButtonRead > 30) {
     lastButtonRead = millis();
     bool btn = digitalRead(BUTTON_PIN);
@@ -55,39 +63,53 @@ void loop() {
     if (btn == LOW && lastButton == HIGH) {
       displayOn = !displayOn;
       digitalWrite(LED_BLUE, displayOn);
-
-      if (!displayOn) {
-        display.clear();
-      }
+      if (!displayOn) display.clear();
     }
     lastButton = btn;
   }
 
-  // ===== NHẤP NHÁY 0.5s =====
-  if (millis() - last500ms >= 500) {
-    last500ms = millis();
-    blinkState = !blinkState;
+  static unsigned long lastBlink = 0;
+  static unsigned long lastSecondTick = 0;
+  static bool localBlink = false;
 
-    static int halfCount = 0;
-    halfCount++;
+  unsigned long now = millis();
+  unsigned long secondInterval = 1000 / SPEED;
 
-    if (halfCount >= 2) {
-      halfCount = 0;
-      remainSeconds--;
+  // ===== BLINK 0.5s =====
+  if (now - lastBlink >= secondInterval / 2) {
+    lastBlink = now;
+    localBlink = !localBlink;
 
-      if (remainSeconds < 0) {
-        state = (state + 1) % 3;
-
-        if (state == 0) remainSeconds = GREEN_TIME;
-        if (state == 1) remainSeconds = YELLOW_TIME;
-        if (state == 2) remainSeconds = RED_TIME;
-      }
-    }
-
-    setLight(state);
-
-    if (displayOn) {
-      display.showNumberDec(remainSeconds, true);
+    if (isDark) {
+      digitalWrite(LED_GREEN, LOW);
+      digitalWrite(LED_RED, LOW);
+      digitalWrite(LED_YELLOW, localBlink);
+    } else {
+      blinkState = localBlink;
+      setLight(state);
     }
   }
+
+  if (!isDark && now - lastSecondTick >= secondInterval) {
+  lastSecondTick = now;
+
+  // HIỂN THỊ TRƯỚC
+   if (displayOn) {
+     display.showNumberDec(remainSeconds, true);
+   }
+
+  // SAU ĐÓ MỚI GIẢM
+  remainSeconds--;
+
+   if (remainSeconds < 0) {
+     state = (state + 1) % 3;
+     if (state == 0) remainSeconds = GREEN_TIME;
+     if (state == 1) remainSeconds = YELLOW_TIME;
+     if (state == 2) remainSeconds = RED_TIME;
+   }
+ }
 }
+
+
+
+
