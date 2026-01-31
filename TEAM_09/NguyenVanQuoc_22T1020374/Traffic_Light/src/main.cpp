@@ -31,5 +31,3 @@ void loop() {
   traficLight.run(ldrSensor);
 
 }
-
-
