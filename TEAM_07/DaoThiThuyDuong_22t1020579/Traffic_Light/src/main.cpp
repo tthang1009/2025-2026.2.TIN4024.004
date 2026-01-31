@@ -1,33 +1,76 @@
 #include "main.h"
+//#include <TM1637Display.h>
 
-//Định nghĩa chân cho đèn LED
-#define PIN_LED_RED     18
-#define PIN_LED_YELLOW  5
-#define PIN_LED_GREEN    17
+#define PIN_LED_RED 25
+#define PIN_LED_YELLOW 33
+#define PIN_LED_GREEN 32
 
-//Định nghĩa cho LDR (Light Dependent Resistor)
-#define PIN_LDR 34 // Analog ADC1 GPIO34 connected to LDR
+// Module connection pins (Digital Pins)
+#define CLK 15
+#define DIO 2
 
-int DAY_ADC_THRESHOLD = 2000; // Ngưỡng ánh sáng ban ngày
+#define PIN_BUTTON_DISPLAY 23
+#define PIN_LED_BLUE 21
 
-//LED ledYellow;
-Trafic_Blink traficLight;
-LDR ldrSensor;
+TM1637Display display(CLK, DIO);
+BUTTON btnBlue;
+LED ledBlue;
+// LED ledYellow;
+Traffic_Blink traffic;
 
-void setup() {
-  // put your setup code here, to run once:
-  printf("Welcome IoT\n");
+void ProcessButtonPressed()
+{
+  static int prevSecond = -1;
+  static bool prevButton = false;
+  btnBlue.processPressed();
 
-  ldrSensor.DAY_THRESHOLD = DAY_ADC_THRESHOLD;
-  ldrSensor.setup(PIN_LDR, false); // VCC = 3.3V
+  bool pressed = btnBlue.isPressed();
+  if (prevButton != pressed)
+  {
+    if (pressed)
+    {
+      ledBlue.setStatus(true);
+      printf("*** DISPLAY ON ***\n");
+    }
+    else
+    {
+      ledBlue.setStatus(false);
+      display.clear();
+      printf("*** DISPLAY OFF ***\n");
+    }
+    prevButton = pressed;
+  }
 
-  traficLight.setupPin(PIN_LED_RED, PIN_LED_YELLOW, PIN_LED_GREEN);
-  traficLight.setupWaitTime(5, 3, 7); // seconds
+  if (pressed)
+  {
+    int secondCount = traffic.getCount();
+    if (prevSecond != secondCount)
+    {
+      prevSecond = secondCount;
+      display.showNumberDec(secondCount);
+    }
+  }
 }
 
-void loop() {
-  //ledYellow.blink(500);
-
-  traficLight.run(ldrSensor);
-
+void setup()
+{
+  printf("*** PROJECT TRAFFIC LIGHT ***\n");
+  // ledYellow.setup(PIN_LED_YELLOW, "YELLOW");
+  btnBlue.setup(PIN_BUTTON_DISPLAY);
+  ledBlue.setup(PIN_LED_BLUE, "BLUE");
+  display.setBrightness(0x0a);
+  display.clear();
+  traffic.setup_Pin(PIN_LED_RED, PIN_LED_YELLOW, PIN_LED_GREEN);
+  traffic.setup_WaitTime(5, 3, 7);
 }
+
+void loop()
+{
+  // ledYellow.blink();
+
+  ProcessButtonPressed();
+
+  traffic.blink(btnBlue.isPressed());
+  
+}
+
