@@ -9,7 +9,7 @@
 #define DIO 33
 
 #define PIN_BUTTON_DISPLAY 27 // Chân nối nút bật/tắt hiển thị
-#define PIN_LED_BLUE 25 //  Chân nối LED báo trạng thái
+#define PIN_LED_BLUE 26 //  Chân nối LED báo trạng thái
 
 TM1637Display display(CLK, DIO); // Tạo đối tượng hiển thị 7 đoạn
 BUTTON btnBlue; // tạo đối tượng nút nhấn
