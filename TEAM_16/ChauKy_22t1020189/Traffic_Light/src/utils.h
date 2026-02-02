@@ -2,6 +2,14 @@
 #include <Arduino.h>
 #include <TM1637Display.h>
 // Định nghĩa các lớp tiện ích: BUTTON, LED, Traffic_Blink
+
+enum LED_INDEX // Chỉ số đèn giao thông
+{
+    INDEX_LED_GREEN = 0,
+    INDEX_LED_YELLOW,
+    INDEX_LED_RED
+};
+
 class BUTTON 
 {
 public:
@@ -31,6 +39,22 @@ protected:
     String _name;
 };
 
+class LDR
+{
+public:
+    LDR();
+    void setup(int pin, bool vcc5Volt = false);
+    int getValue();
+    float readLux(int* analogValue = nullptr);
+
+    static int DAY_THRESHOLD; // lux
+
+private:
+    int _pin;
+    int _value;
+    bool _vcc5Volt;
+};
+
 class Traffic_Blink
 {
 public:
@@ -38,14 +62,18 @@ public:
     ~Traffic_Blink();
     void setup_Pin(int pinRed, int pinYellow, int pinGreen);
     void setup_WaitTime(int redTimer = 5, int yellowTimer = 3, int greenTimer = 7); // seconds
-    void blink(bool showLogger = false);
+    //void blink(bool showLogger = false);
+    void run(LDR& ldrSensor, bool showLogger = false);
     int getCount();
+    bool isNightMode(); // che do dem
 
 protected:
     LED _leds[3];
     int _waitTime[3];
     int _idxLED;
     int _secondCount;
+    bool _nightMode; // che do dem
+   
 };
 
 // Hàm kiểm tra thời gian đã trôi qua - Non-Blocking
