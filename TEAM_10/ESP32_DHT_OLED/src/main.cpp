@@ -1,7 +1,7 @@
 /*
 THÔNG TIN NHÓM 10
 1. Lê Nhữ Hoàng
-2.
+2. Hoàng Anh Quân
 3.
 4.
 5.
