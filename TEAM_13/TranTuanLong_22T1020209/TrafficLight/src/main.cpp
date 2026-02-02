@@ -7,6 +7,8 @@
 #define GREEN_LED 25
 #define BLUE_LED 21
 #define BUTTON_PIN 23
+#define LDR_PIN 13
+#define LDR_THRESHOLD 1500 
 
 #define CLK 18
 #define DIO 19
@@ -17,7 +19,8 @@ const unsigned long redTime = 5000;
 const unsigned long greenTime = 7000;
 const unsigned long yellowTime = 3000;
 int lastState = 0;
-
+bool isNight = false;
+bool lastNightState = false;
 // ====== VARIABLES ======
 int state = 1; // 1=Red, 2=Green, 3=Yellow
 
@@ -37,6 +40,51 @@ void resetSystem()
   Serial.println("--- DISPLAY OFF ---");
 }
 
+void checkLight()
+{
+  static unsigned long lastCheckMillis = 0;
+  const unsigned long CHECK_INTERVAL = 500; // kiểm tra mỗi 500ms
+
+  unsigned long now = millis();
+  if (now - lastCheckMillis < CHECK_INTERVAL)
+    return;
+
+  lastCheckMillis = now;
+
+  int ldrValue = analogRead(LDR_PIN);
+  bool currentNight = (ldrValue > LDR_THRESHOLD);
+
+  // Chỉ xử lý khi trạng thái DAY/NIGHT thay đổi
+  if (currentNight != lastNightState)
+  {
+    isNight = currentNight;
+
+    if (isNight)
+    {
+      Serial.println("====NIGHT====");
+      state = 3;                 // Yellow
+    }
+    else
+    {
+      Serial.println("====DAY====");
+      state = 1;                 // Red
+    }
+
+    previousMillis = now;        // reset timer đúng thời điểm
+    lastDisplayedTime = -1;      // reset countdown
+    lastNightState = isNight;
+  }
+}
+
+void yellowBlink(unsigned long now){
+  if (now - blinkMillis >= 500){
+    blinkMillis = now;
+    ledBlink = !ledBlink;
+    digitalWrite(RED_LED, LOW);
+    digitalWrite(GREEN_LED, LOW);
+    digitalWrite(YELLOW_LED, ledBlink);
+  }
+}
 void setup()
 {
   Serial.begin(115200);
@@ -195,5 +243,11 @@ void trafficLight(unsigned long now)
 void loop()
 {
   handleButton();
-  trafficLight(millis());
+  checkLight();
+  if (isNight){
+    yellowBlink(millis());
+  }else{
+    trafficLight(millis());
+  }
+  
 }
