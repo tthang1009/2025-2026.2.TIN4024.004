@@ -1,9 +1,8 @@
 #include "utils.h"
-#include <stdarg.h> 
 
-#define INDEX_LED_GREEN 0
-#define INDEX_LED_YELLOW 1
-#define INDEX_LED_RED 2
+//#define INDEX_LED_GREEN 0 
+//#define INDEX_LED_YELLOW 1
+//#define INDEX_LED_RED 2
 
 //----- class BUTTON --------------------
 BUTTON::BUTTON()
@@ -77,6 +76,8 @@ void LED::blink()
     digitalWrite(_pin, _status ? HIGH : LOW);
 }
 
+
+
 int LDR::DAY_THRESHOLD = 2000; 
 
 LDR::LDR()
@@ -98,7 +99,7 @@ int LDR::getValue()
     _value = analogRead(_pin);
     return _value;
 }
-void Traffic_Blink::run(LDR& ldrSensor, bool showLogger)
+void Traffic_Blink::run(LDR& ldrSensor, bool showLogger) // dieu khien den giao thong
 {
     static unsigned long ulTimer = 0;
     static uint32_t count = _waitTime[_idxLED];
@@ -119,7 +120,7 @@ void Traffic_Blink::run(LDR& ldrSensor, bool showLogger)
         if (!_nightMode)
         {
             _nightMode = true;
-
+            
             // Tắt xanh & đỏ
             _leds[INDEX_LED_GREEN].setStatus(false);
             _leds[INDEX_LED_RED].setStatus(false);
@@ -137,10 +138,12 @@ void Traffic_Blink::run(LDR& ldrSensor, bool showLogger)
     // ================== BACK TO DAY ==================
     if (_nightMode && !isDark)
     {
-        _nightMode = false;
+        _nightMode = false; // thoat che do dem
+
+         // Tat den vang
         ledStatus = false;
 
-        _idxLED = INDEX_LED_GREEN;
+        _idxLED = INDEX_LED_GREEN; // bat dau tu den xanh
         count = _waitTime[_idxLED];
         _secondCount = 0;
 
@@ -149,11 +152,11 @@ void Traffic_Blink::run(LDR& ldrSensor, bool showLogger)
     }
 
     // ================== NORMAL TRAFFIC ==================
-    if (count == _waitTime[_idxLED])
+    if (count == _waitTime[_idxLED]) //
     {
         _secondCount = (count / 1000) - 1;
         ledStatus = true;
-
+        // Bat den hien tai, tat cac den con lai
         for (int i = 0; i < 3; i++)
         {
             if (i == _idxLED)
@@ -173,7 +176,7 @@ void Traffic_Blink::run(LDR& ldrSensor, bool showLogger)
         _leds[_idxLED].setStatus(ledStatus);
     }
 
-    if (ledStatus)
+    if (ledStatus) 
     {
         if (showLogger)
             printf(" [%s] => seconds: %d\n",
@@ -188,13 +191,13 @@ void Traffic_Blink::run(LDR& ldrSensor, bool showLogger)
     _idxLED = (_idxLED + 1) % 3;
     count = _waitTime[_idxLED];
 }
-
+//----- class LDR --------------------
 float LDR::readLux(int *analogValue)
 {
     static float prevLux = -1.0;
     float voltage, resistance, lux;
 
-    getValue();
+    getValue();// doc gia tri ADC
 
     if (analogValue != nullptr)
     {
@@ -229,6 +232,11 @@ float LDR::readLux(int *analogValue)
     return lux;
 }
 //----- class Traffic_Blink --------------------
+
+bool Traffic_Blink::isNightMode()
+{
+    return _nightMode;
+}
 
 Traffic_Blink::Traffic_Blink()
 {

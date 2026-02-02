@@ -24,8 +24,17 @@ void ProcessButtonPressed()
 {
   static int prevSecond = -1; 
   static bool prevButton = false;
-  btnBlue.processPressed();
+    // TRỜI TỐI → COI NHƯ NÚT ĐANG OFF
+    if (traffic.isNightMode())
+    {
+        ledBlue.setStatus(false);
+        display.clear();
+        prevButton = false;   // reset trạng thái nút
+        prevSecond = -1;
+        return;
+    }
 
+  btnBlue.processPressed();
   bool pressed = btnBlue.isPressed();
   // Nếu trạng thái nút nhấn thay đổi
   if (prevButton != pressed)
@@ -76,6 +85,7 @@ void loop()
   // ledYellow.blink();
   ProcessButtonPressed(); 
   //traffic.blink(btnBlue.isPressed());// điều khiển đèn giao thông
+  // Kiểm tra chế độ ngày/đêm  
   traffic.run(ldrSensor, btnBlue.isPressed());
 
 }
