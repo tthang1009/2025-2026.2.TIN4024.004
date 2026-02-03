@@ -1,3 +1,8 @@
+/*
+THÔNG TIN NHÓM 2
+1. Trần Hữu Tôn Hoàng Gia
+2. Lê Thành Huy
+*/
 #include <Arduino.h>
 
 // put function declarations here:
