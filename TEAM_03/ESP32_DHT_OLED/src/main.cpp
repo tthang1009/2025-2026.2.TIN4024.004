@@ -1,7 +1,7 @@
  /*
 THÔNG TIN NHÓM 3
 1. Nguyễn Đình Tuấn
-2. 
+2. Nguyễn Đăng Hưng
 3. 
 4. 
 5.
@@ -24,6 +24,10 @@ THÔNG TIN NHÓM 3
 
 DHT dht(DHTPIN, DHTTYPE);
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, -1);
+
+void updateStatus();
+void updateOLED();
+void updateLED();
 
 unsigned long lastDhtRead = 0;
 unsigned long lastBlink = 0;
@@ -50,4 +54,80 @@ void setup() {
 
   display.clearDisplay();
   display.setTextColor(SSD1306_WHITE);
+}
+
+void loop() {
+  unsigned long now = millis();
+
+  // ---------- READ DHT (NON-BLOCKING) ----------
+  if (now - lastDhtRead >= dhtInterval) {
+    lastDhtRead = now;
+
+    humidity = dht.readHumidity();
+    temperature = dht.readTemperature();
+
+    if (!isnan(temperature) && !isnan(humidity)) {
+      updateStatus();
+      updateOLED();
+    }
+  }
+  if (now - lastBlink >= blinkInterval) {
+    lastBlink = now;
+    ledState = !ledState;
+    updateLED();
+  }
+}
+
+void updateStatus() {
+  if (temperature < 13) {
+    statusText = "TOO COLD";
+    activeLed = 1;
+  } else if (temperature < 20) {
+    statusText = "COLD";
+    activeLed = 1;
+  } else if (temperature < 25) {
+    statusText = "COOL";
+    activeLed = 2;
+  } else if (temperature < 30) {
+    statusText = "WARM";
+    activeLed = 2;
+  } else if (temperature < 35) {
+    statusText = "HOT";
+    activeLed = 3;
+  } else {
+    statusText = "TOO HOT";
+    activeLed = 3;
+  }
+}
+
+void updateOLED() {
+  display.clearDisplay();
+
+  display.setTextSize(1);
+  display.setCursor(0, 0);
+  display.print("Temp: ");
+  display.print(temperature, 1);
+  display.println(" C");
+
+  display.print("Humi: ");
+  display.print(humidity, 1);
+  display.println(" %");
+
+  display.setTextSize(2);
+  display.setCursor(0, 30);
+  display.println(statusText);
+
+  display.display();
+}
+
+void updateLED() {
+  digitalWrite(LED_RED, LOW);
+  digitalWrite(LED_YELLOW, LOW);
+  digitalWrite(LED_GREEN, LOW);
+
+  if (!ledState) return;
+
+  if (activeLed == 1) digitalWrite(LED_GREEN, HIGH);
+  if (activeLed == 2) digitalWrite(LED_YELLOW, HIGH);
+  if (activeLed == 3) digitalWrite(LED_RED, HIGH);
 }
