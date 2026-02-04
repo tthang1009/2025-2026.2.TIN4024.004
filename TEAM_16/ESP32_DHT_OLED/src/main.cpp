@@ -1,3 +1,11 @@
+/* 
+THÔNG TIN NHÓM 16
+1.Châu Kỳ
+2.Nguyễn Ái Danh
+3.
+4.
+5.
+*/
 #include <Arduino.h>
 
 // put function declarations here:
