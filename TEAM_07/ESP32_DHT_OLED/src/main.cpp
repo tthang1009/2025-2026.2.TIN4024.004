@@ -1,3 +1,8 @@
+/*
+THÔNG TIN NHÓM X
+1. Huỳnh Thị Thủy
+2. Đào Thị Thùy Dương
+*/
 #include <Arduino.h>
 
 // put function declarations here:
