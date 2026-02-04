@@ -1,88 +1,124 @@
-#include <Arduino.h>
+#include <TM1637Display.h>
 
-const int ledXanh = 25;
-const int ledVang = 27;
-const int ledDo = 26;
-const int buttonPin = 23; 
-const int ledBlue = 21;   
+// ====== CHÂN KẾT NỐI ======
+#define CLK 2
+#define DIO 3
 
-const int CLK = 33;
-const int DIO = 32;
+#define GREEN_PIN 8
+#define YELLOW_PIN 9
+#define RED_PIN 10
 
-const uint8_t DIGITS[] = { 
-  0x3f, 0x06, 0x5b, 0x4f, 0x66, 0x6d, 0x7d, 0x07, 0x7f, 0x6f 
-};
+#define BUTTON_PIN 7   // nút bật/tắt hệ thống
+#define LDR_PIN A0     // cảm biến ngày/đêm
 
-void tm1637_start() {
-  digitalWrite(DIO, LOW); delayMicroseconds(100);
-  digitalWrite(CLK, LOW); delayMicroseconds(100);
-}
+TM1637Display display(CLK, DIO);
 
-void tm1637_stop() {
-  digitalWrite(DIO, LOW); delayMicroseconds(100);
-  digitalWrite(CLK, HIGH); delayMicroseconds(100);
-  digitalWrite(DIO, HIGH); delayMicroseconds(100);
-}
+// ====== BIẾN HỆ THỐNG ======
+bool systemOn = true;
+bool isNight = false;
+bool lastNight = false;
 
-void tm1637_writeByte(uint8_t b) {
-  for (int i = 0; i < 8; i++) {
-    digitalWrite(CLK, LOW);
-    if (b & 1) digitalWrite(DIO, HIGH);
-    else digitalWrite(DIO, LOW);
-    delayMicroseconds(100);
-    digitalWrite(CLK, HIGH);
-    delayMicroseconds(100);
-    b >>= 1;
-  }
-  digitalWrite(CLK, LOW); digitalWrite(DIO, LOW); 
-  digitalWrite(CLK, HIGH); digitalWrite(CLK, LOW);
-}
+int state = 0;     // 0: xanh, 1: vàng, 2: đỏ
+int timer = 7;
 
-void hienThiSo(int num) {
-  digitalWrite(ledBlue, HIGH); 
+unsigned long lastTick = 0;
 
-  tm1637_start(); tm1637_writeByte(0x40); tm1637_stop();
-
-  tm1637_start(); tm1637_writeByte(0x8F); tm1637_stop();
-
-  int chuc = num / 10;
-  int donvi = num % 10;
-
-  tm1637_start();
-  tm1637_writeByte(0xC0);
-  
-  tm1637_writeByte(0x00);
-  tm1637_writeByte(0x00);
-  tm1637_writeByte(DIGITS[chuc]);
-  tm1637_writeByte(DIGITS[donvi]);
-  
-  tm1637_stop();
-}
-
+// ====== SETUP ======
 void setup() {
-  pinMode(ledXanh, OUTPUT); pinMode(ledVang, OUTPUT); pinMode(ledDo, OUTPUT);
-  pinMode(buttonPin, INPUT_PULLUP); 
-  pinMode(ledBlue, OUTPUT);
-  
-  pinMode(CLK, OUTPUT); pinMode(DIO, OUTPUT);
-  digitalWrite(CLK, HIGH); digitalWrite(DIO, HIGH);
+  pinMode(GREEN_PIN, OUTPUT);
+  pinMode(YELLOW_PIN, OUTPUT);
+  pinMode(RED_PIN, OUTPUT);
+  pinMode(BUTTON_PIN, INPUT_PULLUP);
 
-  Serial.begin(115200);
-  Serial.println("--- SYSTEM START ---");
+  display.setBrightness(7);
+  display.clear();
 }
 
-void chayPhaDen(int chanDen, int thoiGian) {
-  digitalWrite(ledXanh, LOW); digitalWrite(ledVang, LOW); digitalWrite(ledDo, LOW);
-  digitalWrite(chanDen, HIGH);
+// ====== LOOP ======
+void loop() {
+  // Đọc nút bật/tắt
+  if (digitalRead(BUTTON_PIN) == LOW) {
+    delay(200);
+    systemOn = !systemOn;
+    display.clear();
+  }
 
-  for (int i = thoiGian; i >= 0; i--) {
-    hienThiSo(i);
-    delay(1000);
+  // Xác định ngày / đêm
+  int lightValue = analogRead(LDR_PIN);
+  isNight = lightValue < 500;   // chỉnh nếu cần
+
+  // Reset khi đổi ngày ↔ đêm
+  if (isNight != lastNight) {
+    state = 0;
+    timer = 7;
+    lastTick = millis();
+    display.clear();
+  }
+  lastNight = isNight;
+
+  if (!systemOn) {
+    allOff();
+    return;
+  }
+
+  if (isNight) {
+    handleNightMode();
+  } else {
+    handleDayMode();
   }
 }
 
-void loop() {
-  chayPhaDen(ledXanh, 7);
-  chayPhaDen(ledVang, 3);
-  chayPhaDen(ledDo, 10);
+// ====== CHẾ ĐỘ BAN NGÀY ======
+void handleDayMode() {
+  if (millis() - lastTick >= 1000) {
+    lastTick = millis();
+    timer--;
+
+    if (timer <= 0) {
+      state = (state + 1) % 3;
+      if (state == 0) timer = 7;
+      else if (state == 1) timer = 3;
+      else timer = 10;
+    }
+
+    digitalWrite(GREEN_PIN, state == 0);
+    digitalWrite(YELLOW_PIN, state == 1);
+    digitalWrite(RED_PIN, state == 2);
+
+    // Hiển thị 2 số bên phải
+    display.showNumberDec(timer, false, 2, 2);
+
+    // Xóa 2 số bên trái
+    uint8_t blank[] = {0, 0};
+    display.setSegments(blank, 2, 0);
+  }
+}
+
+// ====== CHẾ ĐỘ BAN ĐÊM ======
+void handleNightMode() {
+  static unsigned long lastBlink = 0;
+  static bool yellowState = LOW;
+
+  digitalWrite(GREEN_PIN, LOW);
+  digitalWrite(RED_PIN, LOW);
+
+  if (millis() - lastBlink >= 500) {
+    lastBlink = millis();
+    yellowState = !yellowState;
+    digitalWrite(YELLOW_PIN, yellowState);
+  }
+
+  // Hiện -- bên phải
+  const uint8_t dash[] = {0x40, 0x40};
+  display.setSegments(dash, 2, 2);
+
+  uint8_t blank[] = {0, 0};
+  display.setSegments(blank, 2, 0);
+}
+
+// ====== TẮT TẤT CẢ ======
+void allOff() {
+  digitalWrite(GREEN_PIN, LOW);
+  digitalWrite(YELLOW_PIN, LOW);
+  digitalWrite(RED_PIN, LOW);
 }
