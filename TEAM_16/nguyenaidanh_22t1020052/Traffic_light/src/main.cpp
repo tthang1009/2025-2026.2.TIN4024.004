@@ -1,124 +1,95 @@
+#include <Arduino.h>
 #include <TM1637Display.h>
 
-// ====== CHÂN KẾT NỐI ======
-#define CLK 2
-#define DIO 3
+const int RED_PIN = 18;
+const int YELLOW_PIN = 5;
+const int GREEN_PIN = 17;
+const int BLUE_LED_PIN = 12; // Đèn liên kết với nút bấm
+const int BUTTON_PIN = 13;
+const int LDR_PIN = 34;
 
-#define GREEN_PIN 8
-#define YELLOW_PIN 9
-#define RED_PIN 10
+// Khởi tạo màn hình TM1637 (CLK: 22, DIO: 23)
+TM1637Display display(22, 23);
 
-#define BUTTON_PIN 7   // nút bật/tắt hệ thống
-#define LDR_PIN A0     // cảm biến ngày/đêm
-
-TM1637Display display(CLK, DIO);
-
-// ====== BIẾN HỆ THỐNG ======
-bool systemOn = true;
-bool isNight = false;
-bool lastNight = false;
-
-int state = 0;     // 0: xanh, 1: vàng, 2: đỏ
-int timer = 7;
-
+// Biến trạng thái
+bool displayEnabled = true; 
+int state = 0;              // 0: Xanh, 1: Vàng, 2: Đỏ
 unsigned long lastTick = 0;
+int timeLeft = 7;           // Bắt đầu với đèn Xanh 7 giây
+bool lastBtnState = HIGH;
 
-// ====== SETUP ======
 void setup() {
-  pinMode(GREEN_PIN, OUTPUT);
-  pinMode(YELLOW_PIN, OUTPUT);
   pinMode(RED_PIN, OUTPUT);
+  pinMode(YELLOW_PIN, OUTPUT);
+  pinMode(GREEN_PIN, OUTPUT);
+  pinMode(BLUE_LED_PIN, OUTPUT);
   pinMode(BUTTON_PIN, INPUT_PULLUP);
-
-  display.setBrightness(7);
-  display.clear();
+  
+  display.setBrightness(7); // Độ sáng tối đa
+  Serial.begin(115200);
 }
 
-// ====== LOOP ======
 void loop() {
-  // Đọc nút bật/tắt
-  if (digitalRead(BUTTON_PIN) == LOW) {
-    delay(200);
-    systemOn = !systemOn;
-    display.clear();
+  // 1. Xử lý Nút bấm để Bật/Tắt bảng đếm ngược
+  bool currentBtn = digitalRead(BUTTON_PIN);
+  if (lastBtnState == HIGH && currentBtn == LOW) {
+    displayEnabled = !displayEnabled;
+    delay(50); // Chống rung nút
   }
+  lastBtnState = currentBtn;
 
-  // Xác định ngày / đêm
-  int lightValue = analogRead(LDR_PIN);
-  isNight = lightValue < 500;   // chỉnh nếu cần
+  // Đèn Blue sáng khi bảng đếm ngược đang ở trạng thái Bật
+  digitalWrite(BLUE_LED_PIN, displayEnabled ? HIGH : LOW);
 
-  // Reset khi đổi ngày ↔ đêm
-  if (isNight != lastNight) {
-    state = 0;
-    timer = 7;
-    lastTick = millis();
-    display.clear();
-  }
-  lastNight = isNight;
+  // 2. Đọc cảm biến ánh sáng (LDR)
+  int lightLevel = analogRead(LDR_PIN);
 
-  if (!systemOn) {
-    allOff();
-    return;
-  }
-
-  if (isNight) {
-    handleNightMode();
+  if (lightLevel > 3000) { 
+    // CHẾ ĐỘ TRỜI TỐI: Vàng nhấp nháy, tắt các đèn khác và bảng số
+    runNightMode();
   } else {
-    handleDayMode();
+    // CHẾ ĐỘ BÌNH THƯỜNG: Đèn giao thông chạy và đếm ngược
+    runTrafficCycle();
   }
 }
 
-// ====== CHẾ ĐỘ BAN NGÀY ======
-void handleDayMode() {
-  if (millis() - lastTick >= 1000) {
-    lastTick = millis();
-    timer--;
-
-    if (timer <= 0) {
-      state = (state + 1) % 3;
-      if (state == 0) timer = 7;
-      else if (state == 1) timer = 3;
-      else timer = 10;
-    }
-
+void runTrafficCycle() {
+  unsigned long currentMillis = millis();
+  
+  if (currentMillis - lastTick >= 1000) {
+    lastTick = currentMillis;
+    
+    // Cập nhật đèn LED theo trạng thái hiện tại
     digitalWrite(GREEN_PIN, state == 0);
     digitalWrite(YELLOW_PIN, state == 1);
     digitalWrite(RED_PIN, state == 2);
 
-    // Hiển thị 2 số bên phải
-    display.showNumberDec(timer, false, 2, 2);
+    // Cập nhật bảng đếm ngược nếu được phép bật
+    if (displayEnabled) {
+      display.showNumberDec(timeLeft, true, 2, 2); // Luôn hiện 2 chữ số (ví dụ: 07, 02)
+    } else {
+      display.clear();
+    }
 
-    // Xóa 2 số bên trái
-    uint8_t blank[] = {0, 0};
-    display.setSegments(blank, 2, 0);
+    // Trừ thời gian
+    timeLeft--;
+
+    // Chuyển trạng thái khi hết thời gian
+    if (timeLeft < 0) {
+      state = (state + 1) % 3;
+      if (state == 0) timeLeft = 7;   // Xanh 7s
+      else if (state == 1) timeLeft = 3;  // Vàng 3s
+      else if (state == 2) timeLeft = 10; // Đỏ 10s
+    }
   }
 }
 
-// ====== CHẾ ĐỘ BAN ĐÊM ======
-void handleNightMode() {
-  static unsigned long lastBlink = 0;
-  static bool yellowState = LOW;
-
-  digitalWrite(GREEN_PIN, LOW);
+void runNightMode() {
+  // Tắt các đèn không liên quan
   digitalWrite(RED_PIN, LOW);
-
-  if (millis() - lastBlink >= 500) {
-    lastBlink = millis();
-    yellowState = !yellowState;
-    digitalWrite(YELLOW_PIN, yellowState);
-  }
-
-  // Hiện -- bên phải
-  const uint8_t dash[] = {0x40, 0x40};
-  display.setSegments(dash, 2, 2);
-
-  uint8_t blank[] = {0, 0};
-  display.setSegments(blank, 2, 0);
-}
-
-// ====== TẮT TẤT CẢ ======
-void allOff() {
   digitalWrite(GREEN_PIN, LOW);
-  digitalWrite(YELLOW_PIN, LOW);
-  digitalWrite(RED_PIN, LOW);
+  display.clear();
+  
+  // Đèn vàng nhấp nháy chu kỳ 1 giây (500ms sáng / 500ms tắt)
+  digitalWrite(YELLOW_PIN, (millis() / 500) % 2);
 }
