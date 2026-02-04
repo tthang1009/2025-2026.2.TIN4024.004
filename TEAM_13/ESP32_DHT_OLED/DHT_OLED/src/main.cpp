@@ -1,10 +1,8 @@
 /*
-THÔNG TIN NHÓM 10
-1. Lê Nhữ Hoàng
-2. Hoàng Anh Quân
-3. Trần Nguyễn Phước Kiệt
-4. Huỳnh Tấn Sang
-5.
+  THÔNG TIN NHÓM 13
+1. Trần Tuấn Long
+2.Nguyễn Thị Huyền Trân
+3. Nguyễn Thị Thùy Ngân
 */
 
 #include <Arduino.h>

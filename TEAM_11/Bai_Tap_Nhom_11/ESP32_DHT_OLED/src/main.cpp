@@ -1,9 +1,11 @@
 
 /*
 THÔNG TIN NHÓM X
-1. Nguyễn Văn Bình
-2. Lê Nguyễn Hương Nguyên
+1. Phan Hữu Tuấn Kiệt
+2. 
 3. ...
+4....
+5.....
 */
 #include <Arduino.h>
   
