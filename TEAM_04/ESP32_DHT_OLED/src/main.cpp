@@ -20,9 +20,9 @@ Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, -1);
 #define DHTTYPE DHT22
 DHT dht(DHTPIN, DHTTYPE);
 
-#define LED_RED 5
-#define LED_YELLOW 3
-#define LED_GREEN 16
+#define LED_RED 4
+#define LED_YELLOW 2
+#define LED_GREEN 15
 
 void setup()
 {
