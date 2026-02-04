@@ -108,8 +108,6 @@ void loop()
 
 
   display.clearDisplay();
-
-
   display.setTextSize(1);
   display.setCursor(0, 0);
   display.print("Temp: ");
@@ -117,11 +115,9 @@ void loop()
   display.setCursor(0, 10);
   display.print(t, 1);
   display.print(" C");
-
   display.setTextSize(1);
   display.setCursor(75, 15);
   display.print(status);
-
   display.setTextSize(1);
   display.setCursor(0, 35);
   display.print("Humidity: ");
@@ -129,14 +125,11 @@ void loop()
   display.setCursor(0, 45);
   display.print(h, 1);
   display.print(" %");
-
   display.display();
-
 
   digitalWrite(LED_RED, LOW);
   digitalWrite(LED_YELLOW, LOW);
   digitalWrite(LED_GREEN, LOW);
-
 
   for (int j = 0; j < 2; j++)
   {
