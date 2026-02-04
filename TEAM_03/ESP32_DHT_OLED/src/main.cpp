@@ -113,7 +113,8 @@ void updateOLED() {
   display.setTextSize(2);
   display.setCursor(0, 12);
   display.print(temperature, 2);
-  display.print(" ºC");
+  display.print((char)247); 
+  display.print("C");
 
   // Dòng 3: Humidity
   display.setTextSize(1);
