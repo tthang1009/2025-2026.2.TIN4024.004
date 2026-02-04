@@ -1,0 +1,115 @@
+#include <Arduino.h>
+#include <TM1637Display.h>
+
+// ===== PIN =====
+#define LED_GREEN   25
+#define LED_YELLOW  26
+#define LED_RED     27
+
+#define LED_BLUE    21
+#define BUTTON_PIN  23
+#define LDR_PIN     13
+
+#define CLK 18
+#define DIO 19
+
+// ===== TIME =====
+#define GREEN_TIME   7
+#define YELLOW_TIME  3
+#define RED_TIME     5
+
+#define DARK_THRESHOLD 1500
+
+TM1637Display display(CLK, DIO);
+
+// ===== GLOBAL =====
+int state = 0;              // 0: GREEN, 1: YELLOW, 2: RED
+int remainSeconds = GREEN_TIME;
+
+bool displayOn = false;
+bool lastButton = HIGH;
+
+bool blinkState = false;
+
+unsigned long lastBlink = 0;
+unsigned long lastSecond = 0;
+unsigned long lastButtonRead = 0;
+
+// ===== SET LED =====
+void setLight(int s) {
+  digitalWrite(LED_GREEN, s == 0 ? blinkState : LOW);
+  digitalWrite(LED_YELLOW, s == 1 ? blinkState : LOW);
+  digitalWrite(LED_RED, s == 2 ? blinkState : LOW);
+}
+
+// ===== SETUP =====
+void setup() {
+  Serial.begin(115200);
+
+  pinMode(LED_GREEN, OUTPUT);
+  pinMode(LED_YELLOW, OUTPUT);
+  pinMode(LED_RED, OUTPUT);
+
+  pinMode(LED_BLUE, OUTPUT);
+  pinMode(BUTTON_PIN, INPUT_PULLUP);
+  pinMode(LDR_PIN, INPUT);
+
+  display.setBrightness(0x0f);
+  display.clear();
+
+  Serial.println("=== HE THONG DIEU KHIEN DEN & CAM BIEN ANH SANG ===");
+}
+
+// ===== LOOP =====
+void loop() {
+  unsigned long now = millis();
+
+  // ===== ĐỌC LDR =====
+  int lightValue = analogRead(LDR_PIN);
+  bool isDark = lightValue > DARK_THRESHOLD;
+
+  // ===== NÚT NHẤN =====
+  if (now - lastButtonRead > 30) {
+    lastButtonRead = now;
+    bool btn = digitalRead(BUTTON_PIN);
+
+    if (btn == LOW && lastButton == HIGH) {
+      displayOn = !displayOn;
+      digitalWrite(LED_BLUE, displayOn);
+      if (!displayOn) display.clear();
+    }
+    lastButton = btn;
+  }
+
+  // ===== BLINK 500ms =====
+  if (now - lastBlink >= 500) {
+    lastBlink = now;
+    blinkState = !blinkState;
+
+    if (isDark) {
+      digitalWrite(LED_GREEN, LOW);
+      digitalWrite(LED_RED, LOW);
+      digitalWrite(LED_YELLOW, blinkState);
+    } else {
+      setLight(state);
+    }
+  }
+
+  // ===== ĐẾM GIÂY =====
+  if (!isDark && now - lastSecond >= 1000) {
+    lastSecond = now;
+    remainSeconds--;
+
+    if (displayOn) {
+      display.showNumberDec(remainSeconds, true);
+    }
+
+    if (remainSeconds <= 0) {
+      state = (state + 1) % 3;
+
+      if (state == 0) remainSeconds = GREEN_TIME;
+      if (state == 1) remainSeconds = YELLOW_TIME;
+      if (state == 2) remainSeconds = RED_TIME;
+    }
+  }
+}
