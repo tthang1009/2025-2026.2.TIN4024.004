@@ -9,23 +9,64 @@ THÔNG TIN NHÓM 04
 
 #include <Wire.h>
 #include <Adafruit_GFX.h>
-#include <DHT.h>
 #include <Adafruit_SSD1306.h>
+#include <DHT.h>
 
+/* ===== OLED ===== */
 #define SCREEN_WIDTH 128
 #define SCREEN_HEIGHT 64
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, -1);
 
-#define DHTPIN 16
-#define DHTTYPE DHT22
+/* ===== DHT ===== */
+#define DHTPIN   16
+#define DHTTYPE  DHT22
 DHT dht(DHTPIN, DHTTYPE);
 
-#define LED_RED 4
-#define LED_YELLOW 2
-#define LED_GREEN 15
+/* ===== LED ===== */
+#define LED_RED     4
+#define LED_YELLOW  2
+#define LED_GREEN   15
 
-void setup()
-{
+/* ===== Struct trạng thái ===== */
+struct WeatherState {
+  String text;
+  uint8_t led;
+};
+
+/* ===== Hàm xác định trạng thái ===== */
+WeatherState getWeatherState(float t) {
+  WeatherState state;
+
+  if (t < 13) {
+    state.text = "TOO COLD";
+    state.led  = LED_GREEN;
+  } 
+  else if (t < 20) {
+    state.text = "COLD";
+    state.led  = LED_GREEN;
+  } 
+  else if (t < 25) {
+    state.text = "COOL";
+    state.led  = LED_YELLOW;
+  } 
+  else if (t < 30) {
+    state.text = "WARM";
+    state.led  = LED_YELLOW;
+  } 
+  else if (t <= 35) {
+    state.text = "HOT";
+    state.led  = LED_RED;
+  } 
+  else {
+    state.text = "TOO HOT";
+    state.led  = LED_RED;
+  }
+
+  return state;
+}
+
+/* ===== SETUP ===== */
+void setup() {
   Serial.begin(115200);
 
   pinMode(LED_RED, OUTPUT);
@@ -33,109 +74,68 @@ void setup()
   pinMode(LED_GREEN, OUTPUT);
 
   Wire.begin(13, 12);
-
   dht.begin();
 
-  if (!display.begin(SSD1306_SWITCHCAPVCC, 0x3C))
-  {
-    Serial.println(F("SSD1306 allocation failed"));
-    for (;;)
-      ;
+  if (!display.begin(SSD1306_SWITCHCAPVCC, 0x3C)) {
+    Serial.println("OLED loi!");
+    while (1);
   }
 
   display.clearDisplay();
   display.setTextColor(SSD1306_WHITE);
-  display.setTextSize(1);
-  display.setCursor(10, 20);
-  display.println("He thong dang khoi dong..");
+  display.setCursor(10, 25);
+  display.println("Khoi dong he thong...");
   display.display();
   delay(2000);
 }
 
-void loop()
-{
- 
+/* ===== LOOP ===== */
+void loop() {
   float h = dht.readHumidity();
   float t = dht.readTemperature();
 
-  if (isnan(h) || isnan(t))
-  {
-    Serial.println(F("Loi doc cam bien DHT!"));
+  if (isnan(h) || isnan(t)) {
+    Serial.println("Khong doc duoc DHT");
     return;
   }
 
-  String status = "";
-  String icon = "";
-  int activeLED = -1;
+  WeatherState ws = getWeatherState(t);
 
-  
-  if (t < 13)
-  {
-    status = "TOO COLD";
-    icon = "  COLD  ";
-    activeLED = LED_GREEN;
-  }
-  else if (t >= 13 && t < 20)
-  {
-    status = "COLD";
-    icon = "  RAIN  ";
-    activeLED = LED_GREEN;
-  }
-  else if (t >= 20 && t < 25)
-  {
-    status = "COOL";
-    icon = " CLOUD  ";
-    activeLED = LED_YELLOW;
-  }
-  else if (t >= 25 && t < 30)
-  {
-    status = "WARM";
-    icon = "  SUN   ";
-    activeLED = LED_YELLOW;
-  }
-  else if (t >= 30 && t <= 35)
-  {
-    status = "HOT";
-    icon = " HOT SUN";
-    activeLED = LED_RED;
-  }
-  else
-  {
-    status = "TOO HOT";
-    icon = "  FIRE  ";
-    activeLED = LED_RED;
-  }
-
-
+  /* ---- Hien thi OLED ---- */
   display.clearDisplay();
+
   display.setTextSize(1);
   display.setCursor(0, 0);
-  display.print("Temp: ");
+  display.print("Temp");
+
   display.setTextSize(2);
   display.setCursor(0, 10);
   display.print(t, 1);
   display.print(" C");
+
   display.setTextSize(1);
-  display.setCursor(75, 15);
-  display.print(status);
-  display.setTextSize(1);
-  display.setCursor(0, 35);
-  display.print("Humidity: ");
+  display.setCursor(80, 15);
+  display.print(ws.text);
+
+  display.setCursor(0, 38);
+  display.print("Humidity");
+
   display.setTextSize(2);
-  display.setCursor(0, 45);
+  display.setCursor(0, 48);
   display.print(h, 1);
   display.print(" %");
+
   display.display();
 
+  /* ---- LED ---- */
   digitalWrite(LED_RED, LOW);
   digitalWrite(LED_YELLOW, LOW);
   digitalWrite(LED_GREEN, LOW);
 
-  for (int j = 0; j < 2; j++)
-  {
-    digitalWrite(activeLED, HIGH);
-    delay(500);
-    digitalWrite(activeLED, LOW);
-    delay(500);
+  for (int i = 0; i < 2; i++) {
+    digitalWrite(ws.led, HIGH);
+    delay(400);
+    digitalWrite(ws.led, LOW);
+    delay(400);
   }
 }
