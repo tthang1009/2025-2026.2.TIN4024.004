@@ -3,8 +3,8 @@ THÔNG TIN NHÓM 04
 1. Nguyễn Thành Doanh
 2. Lê Ngọc Minh
 3. Hồ Ngọc Phúc Thăng
-4. Võ Hữu Lộc
-5. Nguyễn Bá Quý Đạt
+4. Nguyễn Bá Quý Đạt
+5. Võ Hữu Lộc
 */
 
 #include <Arduino.h>
