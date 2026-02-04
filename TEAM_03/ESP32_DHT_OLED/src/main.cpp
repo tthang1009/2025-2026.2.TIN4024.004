@@ -103,22 +103,28 @@ void updateStatus() {
 void updateOLED() {
   display.clearDisplay();
 
+  // Dòng 1: Temperature + trạng thái
   display.setTextSize(1);
   display.setCursor(0, 0);
-  display.print("Temp: ");
-  display.print(temperature, 1);
-  display.println(" C");
-
-  display.print("Humi: ");
-  display.print(humidity, 1);
-  display.println(" %");
-
-  display.setTextSize(2);
-  display.setCursor(0, 30);
+  display.print("Temperature: ");
   display.println(statusText);
+
+  // Dòng 2: Giá trị nhiệt độ to
+  display.setTextSize(2);
+  display.setCursor(0, 12);
+  display.print(temperature, 2);
+  display.print(" C");
+
+  // Dòng 3: Humidity
+  display.setTextSize(1);
+  display.setCursor(0, 38);
+  display.print("Humidity: ");
+  display.print(humidity, 2);
+  display.print(" %");
 
   display.display();
 }
+
 
 void updateLED() {
   digitalWrite(LED_RED, LOW);
