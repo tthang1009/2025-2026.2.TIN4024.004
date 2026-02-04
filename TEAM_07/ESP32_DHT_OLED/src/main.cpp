@@ -4,5 +4,3 @@ THÔNG TIN NHÓM X
 2. Đào Thị Thùy Dương
 3. Hồ Thị Thanh Bình 
 */
-
-//
