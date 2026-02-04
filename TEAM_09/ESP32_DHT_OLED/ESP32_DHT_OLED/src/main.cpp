@@ -1,9 +1,10 @@
 /*
 THÔNG TIN NHÓM 9
 1. Cao Huy Minh Quân
-2.
-3.
-4.
+2. Quách Đạo Mạnh
+3. Nguyễn Văn Quốc
+4. Phan Anh Tài
+5. Thái Thanh Sơn
 */
 
 #include <Wire.h>
